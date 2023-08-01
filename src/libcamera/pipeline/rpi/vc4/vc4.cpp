@@ -15,6 +15,7 @@
 
 #include "libcamera/internal/device_enumerator.h"
 #include "libcamera/internal/dma_buf_allocator.h"
+#include "libcamera/internal/v4l2_subdevice.h"
 
 #include "../common/pipeline_base.h"
 #include "../common/rpi_stream.h"
@@ -32,6 +33,10 @@ namespace {
 
 enum class Unicam : unsigned int { Image, Embedded };
 enum class Isp : unsigned int { Input, Output0, Output1, Stats };
+
+static constexpr unsigned int kUnicamSinkPad = 0;
+static constexpr unsigned int kUnicamSourceImagePad = 1;
+static constexpr unsigned int kUnicamSourceMetadataPad = 2;
 
 } /* namespace */
 
@@ -83,6 +88,8 @@ public:
 				unsigned int paramsBytesUsed);
 	void setIspControls(const ControlList &controls);
 	void setCameraTimeout(uint32_t maxFrameLengthMs);
+
+	std::unique_ptr<V4L2Subdevice> unicamSubdev_;
 
 	/* Array of Unicam and ISP device streams and associated buffers/streams. */
 	RPi::Device<Unicam, 2> unicam_;
@@ -214,7 +221,7 @@ bool PipelineHandlerVc4::match(DeviceEnumerator *enumerator)
 
 			std::unique_ptr<RPi::CameraData> cameraData = std::make_unique<Vc4CameraData>(this);
 			int ret = RPi::PipelineHandlerBase::registerCamera(cameraData,
-									   unicamDevice, "unicam-image",
+									   unicamDevice, "unicam",
 									   ispDevice, entity);
 			if (ret)
 				LOG(RPI, Error) << "Failed to register camera "
@@ -355,16 +362,19 @@ int PipelineHandlerVc4::platformRegister(std::unique_ptr<RPi::CameraData> &camer
 	if (!data->dmaHeap_.isValid())
 		return -ENOMEM;
 
+	MediaEntity *unicamSubdev = unicam->getEntityByName("unicam");
 	MediaEntity *unicamImage = unicam->getEntityByName("unicam-image");
 	MediaEntity *ispOutput0 = isp->getEntityByName("bcm2835-isp0-output0");
 	MediaEntity *ispCapture1 = isp->getEntityByName("bcm2835-isp0-capture1");
 	MediaEntity *ispCapture2 = isp->getEntityByName("bcm2835-isp0-capture2");
 	MediaEntity *ispCapture3 = isp->getEntityByName("bcm2835-isp0-capture3");
 
-	if (!unicamImage || !ispOutput0 || !ispCapture1 || !ispCapture2 || !ispCapture3)
+	if (!unicamSubdev || !unicamImage || !ispOutput0 || !ispCapture1 ||
+	    !ispCapture2 || !ispCapture3)
 		return -ENOENT;
 
-	/* Locate and open the unicam video streams. */
+	/* Create the unicam subdev and video streams. */
+	data->unicamSubdev_ = std::make_unique<V4L2Subdevice>(unicamSubdev);
 	data->unicam_[Unicam::Image] = RPi::Stream("Unicam Image", unicamImage);
 
 	/* An embedded data node will not be present if the sensor does not support it. */
@@ -403,6 +413,10 @@ int PipelineHandlerVc4::platformRegister(std::unique_ptr<RPi::CameraData> &camer
 	 * The below grouping is just for convenience so that we can easily
 	 * iterate over all streams in one go.
 	 */
+	int ret = data->unicamSubdev_->open();
+	if (ret < 0)
+		return ret;
+
 	data->streams_.push_back(&data->unicam_[Unicam::Image]);
 	if (data->sensorMetadata_)
 		data->streams_.push_back(&data->unicam_[Unicam::Embedded]);
@@ -411,7 +425,7 @@ int PipelineHandlerVc4::platformRegister(std::unique_ptr<RPi::CameraData> &camer
 		data->streams_.push_back(&stream);
 
 	for (auto stream : data->streams_) {
-		int ret = stream->dev()->open();
+		ret = stream->dev()->open();
 		if (ret)
 			return ret;
 	}
@@ -588,9 +602,54 @@ int Vc4CameraData::platformPipelineConfigure(const std::unique_ptr<ValueNode> &r
 
 int Vc4CameraData::platformConfigure(const RPi::RPiCameraConfiguration *rpiConfig)
 {
+	/*
+	 * 1. Configure the Unicam subdev.
+	 *
+	 * Start by setting up routes, and then set the formats on the sink pad
+	 * streams. They will be automatically propagated to the source pads by
+	 * the kernel.
+	 */
+
+	const V4L2Subdevice::Stream imageStream{
+		kUnicamSinkPad,
+		sensor_->imageStream().stream
+	};
+	const V4L2Subdevice::Stream embeddedDataStream{
+		kUnicamSinkPad,
+		sensor_->embeddedDataStream().value_or(V4L2Subdevice::Stream{}).stream
+	};
+
+	V4L2Subdevice::Routing routing;
+
+	routing.emplace_back(imageStream, V4L2Subdevice::Stream{ kUnicamSourceImagePad, 0 },
+			     V4L2_SUBDEV_ROUTE_FL_ACTIVE);
+
+	if (sensorMetadata_)
+		routing.emplace_back(embeddedDataStream,
+				     V4L2Subdevice::Stream{ kUnicamSourceMetadataPad, 0 },
+				     V4L2_SUBDEV_ROUTE_FL_ACTIVE);
+
+	int ret = unicamSubdev_->setRouting(&routing);
+	if (ret)
+		return ret;
+
+	V4L2SubdeviceFormat subdevFormat = rpiConfig->sensorFormat_;
+	ret = unicamSubdev_->setFormat(imageStream, &subdevFormat);
+	if (ret)
+		return ret;
+
+	if (sensorMetadata_) {
+		subdevFormat = sensor_->embeddedDataFormat();
+		ret = unicamSubdev_->setFormat(embeddedDataStream, &subdevFormat);
+		if (ret)
+			return ret;
+	}
+
+	/*
+	 * 2. Configure the Unicam video devices.
+	 */
 	const std::vector<StreamParams> &rawStreams = rpiConfig->rawStreams_;
 	const std::vector<StreamParams> &outStreams = rpiConfig->outStreams_;
-	int ret;
 
 	V4L2VideoDevice *unicam = unicam_[Unicam::Image].dev();
 	V4L2DeviceFormat unicamFormat;
@@ -614,13 +673,36 @@ int Vc4CameraData::platformConfigure(const RPi::RPiCameraConfiguration *rpiConfi
 	if (ret)
 		return ret;
 
-	ret = isp_[Isp::Input].dev()->setFormat(&unicamFormat);
-	if (ret)
-		return ret;
-
 	LOG(RPI, Info) << "Sensor: " << sensor_->id()
 		       << " - Selected sensor format: " << rpiConfig->sensorFormat_
 		       << " - Selected unicam format: " << unicamFormat;
+
+	/*
+	 * Configure the Unicam embedded data output format only if the sensor
+	 * supports it.
+	 */
+	if (sensorMetadata_) {
+		V4L2SubdeviceFormat embeddedFormat = sensor_->embeddedDataFormat();
+		V4L2DeviceFormat format{};
+		format.fourcc = V4L2PixelFormat(V4L2_META_FMT_SENSOR_DATA);
+		format.planes[0].size = embeddedFormat.size.width * embeddedFormat.size.height;
+
+		LOG(RPI, Debug) << "Setting embedded data format " << format;
+		ret = unicam_[Unicam::Embedded].dev()->setFormat(&format);
+		if (ret) {
+			LOG(RPI, Error) << "Failed to set format on Unicam embedded: "
+					<< format;
+			return ret;
+		}
+	}
+
+	/*
+	 * 3. Configure the ISP.
+	 */
+
+	ret = isp_[Isp::Input].dev()->setFormat(&unicamFormat);
+	if (ret)
+		return ret;
 
 	/* Use a sensible small default size if no output streams are configured. */
 	Size maxSize = outStreams.empty() ? Size(320, 240) : outStreams[0].cfg->size;
