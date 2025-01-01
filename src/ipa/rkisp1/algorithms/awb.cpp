@@ -16,6 +16,8 @@
 
 #include <libcamera/ipa/core_ipa_interface.h>
 
+#include "../utils.h"
+
 /**
  * \file awb.h
  */
@@ -176,6 +178,46 @@ void Awb::prepare(IPAContext &context, const uint32_t frame,
 		awbConfig->min_c = 16;
 		awbConfig->max_csum = 250;
 	}
+
+	auto awb64Config = params->block<BlockType::Awb64>();
+	awb64Config.setEnabled(true);
+
+	/* Configure the measure window for AWB. */
+	awb64Config->awb_wnd = context.configuration.awb.measureWindow;
+
+	/* Identity matrix for the CSM */
+	auto csm = Matrix<float, 3, 3>::identity();
+	/* FIXME: Figure out actual representation
+	 * Assuming Q4.7
+	 */
+	for (unsigned int i = 0; i < 3; i++) {
+		for (unsigned int j = 0; j < 3; j++)
+			awb64Config->cc_coeff[i][j] =
+				utils::floatingToFixedPoint<4, 7, uint16_t, double>(csm[i][j]);
+	}
+
+
+	/* Configure min/max values */
+	awb64Config->min_max_r = 0xff00;
+	awb64Config->min_max_g = 0xff00;
+	awb64Config->min_max_b = 0xff00;
+	awb64Config->min_div = 10;
+
+	/* Disable all extra features */
+	awb64Config->enable_median_filter = 0;
+	awb64Config->chrom_switch = 0;
+	awb64Config->ellip_unite = 0;
+
+	/* Configure ellipse 0 */
+	awb64Config->ellip[0].cen_x = 512;
+	awb64Config->ellip[0].cen_y = 512;
+	/* Somehow this isn't working, but keeping them to 0 works
+	awb64Config->ellip[0].ctm[0] = utils::floatingToFixedPoint<2, 10, uint16_t, double>(1.0);
+	awb64Config->ellip[0].ctm[1] = utils::floatingToFixedPoint<1, 8, uint16_t, double>(1.0);
+	awb64Config->ellip[0].ctm[2] = utils::floatingToFixedPoint<2, 10, uint16_t, double>(1.0);
+	awb64Config->ellip[0].ctm[3] = utils::floatingToFixedPoint<1, 8, uint16_t, double>(1.0);
+	*/
+	awb64Config->ellip[0].rmax = 200 * 200;
 }
 
 uint32_t Awb::estimateCCT(double red, double green, double blue)
@@ -205,10 +247,20 @@ void Awb::process(IPAContext &context,
 {
 	const rkisp1_cif_isp_stat *params = &stats->params;
 	const rkisp1_cif_isp_awb_stat *awb = &params->awb;
+	const rkisp1_cif_isp_awb64_stat *awb64 = &params->awb64;
 	IPAActiveState &activeState = context.activeState;
 	double greenMean;
 	double redMean;
 	double blueMean;
+
+	double count = awb64->count[0].cnt;
+	LOG(RkISP1Awb, Info)
+		<< std::showpoint
+		<< "AWB64 White Count ["
+		<< awb64->count[0].cnt << "], Means ["
+		<< awb64->count[0].accu_r / count << ", "
+		<< awb64->count[0].accu_g / count << ", "
+		<< awb64->count[0].accu_b / count << "]";
 
 	metadata.set(controls::AwbEnable, frameContext.awb.autoEnabled);
 	metadata.set(controls::ColourGains, {
