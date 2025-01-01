@@ -95,6 +95,7 @@ const IPAHwSettings ipaHwSettingsV10{
 	RKISP1_CIF_ISP_HISTOGRAM_WEIGHT_GRIDS_SIZE_V10,
 	RKISP1_CIF_ISP_GAMMA_OUT_MAX_SAMPLES_V10,
 	false,
+	false,
 };
 
 const IPAHwSettings ipaHwSettingsIMX8MP{
@@ -103,6 +104,7 @@ const IPAHwSettings ipaHwSettingsIMX8MP{
 	RKISP1_CIF_ISP_HISTOGRAM_WEIGHT_GRIDS_SIZE_V10,
 	RKISP1_CIF_ISP_GAMMA_OUT_MAX_SAMPLES_V10,
 	true,
+	true,
 };
 
 const IPAHwSettings ipaHwSettingsV12{
@@ -110,6 +112,7 @@ const IPAHwSettings ipaHwSettingsV12{
 	RKISP1_CIF_ISP_HIST_BIN_N_MAX_V12,
 	RKISP1_CIF_ISP_HISTOGRAM_WEIGHT_GRIDS_SIZE_V12,
 	RKISP1_CIF_ISP_GAMMA_OUT_MAX_SAMPLES_V12,
+	false,
 	false,
 };
 

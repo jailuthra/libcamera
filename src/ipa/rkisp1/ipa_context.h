@@ -33,6 +33,7 @@ struct IPAHwSettings {
 	unsigned int numHistogramWeights;
 	unsigned int numGammaOutSamples;
 	bool compand;
+	bool awb64;
 };
 
 struct IPASessionConfiguration {
