@@ -75,6 +75,7 @@ const std::map<BlockType, BlockTypeInfo> kBlockTypeInfo = {
 	RKISP1_BLOCK_TYPE_ENTRY_EXT(CompandExpand, COMPAND_EXPAND, compand_curve),
 	RKISP1_BLOCK_TYPE_ENTRY_EXT(CompandCompress, COMPAND_COMPRESS, compand_curve),
 	RKISP1_BLOCK_TYPE_ENTRY_EXT(Awb64, AWB64_MEAS, awb64_meas),
+	RKISP1_BLOCK_TYPE_ENTRY_EXT(Wdr, WDR, wdr),
 };
 
 } /* namespace */

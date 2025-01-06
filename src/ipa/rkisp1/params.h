@@ -41,6 +41,7 @@ enum class BlockType {
 	CompandExpand,
 	CompandCompress,
 	Awb64,
+	Wdr,
 };
 
 namespace details {
@@ -76,6 +77,7 @@ RKISP1_DEFINE_BLOCK_TYPE(CompandBls, compand_bls)
 RKISP1_DEFINE_BLOCK_TYPE(CompandExpand, compand_curve)
 RKISP1_DEFINE_BLOCK_TYPE(CompandCompress, compand_curve)
 RKISP1_DEFINE_BLOCK_TYPE(Awb64, awb64_meas)
+RKISP1_DEFINE_BLOCK_TYPE(Wdr, wdr)
 
 } /* namespace details */
 
