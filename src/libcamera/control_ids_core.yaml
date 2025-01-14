@@ -344,6 +344,17 @@ controls:
         \sa AwbEnable
       size: [2]
 
+  - Awb64Rmax:
+      type: int32_t
+      description: |
+        Max radius of AWB64 ellipse region
+
+  - Awb64Center:
+      type: int32_t
+      description: |
+        Max radius of AWB64 ellipse region
+      size: [2]
+
   - ColourTemperature:
       type: int32_t
       description: |

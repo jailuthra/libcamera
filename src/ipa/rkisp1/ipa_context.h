@@ -99,6 +99,13 @@ struct IPAActiveState {
 
 		unsigned int temperatureK;
 		bool autoEnabled;
+
+		struct {
+			int32_t x;
+			int32_t y;
+		} center;
+
+		int32_t rmax;
 	} awb;
 
 	struct {
@@ -143,6 +150,13 @@ struct IPAFrameContext : public FrameContext {
 			double green;
 			double blue;
 		} gains;
+
+		int32_t rmax;
+
+		struct {
+			int32_t x;
+			int32_t y;
+		} center;
 
 		bool autoEnabled;
 	} awb;

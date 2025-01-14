@@ -122,6 +122,8 @@ const ControlInfoMap::Map rkisp1Controls{
 	{ &controls::ColourGains, ControlInfo(0.0f, 3.996f, 1.0f) },
 	{ &controls::Sharpness, ControlInfo(0.0f, 10.0f, 1.0f) },
 	{ &controls::draft::NoiseReductionMode, ControlInfo(controls::draft::NoiseReductionModeValues) },
+	{ &controls::Awb64Rmax, ControlInfo(0, 16777216) },
+	{ &controls::Awb64Center, ControlInfo(-512, 511, 0) },
 };
 
 } /* namespace */

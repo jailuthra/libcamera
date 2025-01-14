@@ -53,6 +53,9 @@ int Awb::configure(IPAContext &context,
 	context.activeState.awb.gains.automatic.red = 1.0;
 	context.activeState.awb.gains.automatic.blue = 1.0;
 	context.activeState.awb.gains.automatic.green = 1.0;
+	context.activeState.awb.rmax = 0;
+	context.activeState.awb.center.x = 0;
+	context.activeState.awb.center.y = 0;
 	context.activeState.awb.autoEnabled = true;
 
 	/*
@@ -97,6 +100,20 @@ void Awb::queueRequest(IPAContext &context,
 			<< ", blue: " << awb.gains.manual.blue;
 	}
 
+	const auto &rmax = controls.get(controls::Awb64Rmax);
+	if (rmax) {
+		awb.rmax = *rmax;
+	}
+	frameContext.awb.rmax = awb.rmax;
+
+	const auto &center = controls.get(controls::Awb64Center);
+	if (center) {
+		awb.center.x = (*center)[0];
+		awb.center.y = (*center)[1];
+	}
+	frameContext.awb.center.x = awb.center.x;
+	frameContext.awb.center.y = awb.center.y;
+
 	frameContext.awb.autoEnabled = awb.autoEnabled;
 
 	if (!awb.autoEnabled) {
@@ -129,6 +146,47 @@ void Awb::prepare(IPAContext &context, const uint32_t frame,
 	gainConfig->gain_blue = std::clamp<int>(256 * frameContext.awb.gains.blue, 0, 0x3ff);
 	gainConfig->gain_red = std::clamp<int>(256 * frameContext.awb.gains.red, 0, 0x3ff);
 	gainConfig->gain_green_r = std::clamp<int>(256 * frameContext.awb.gains.green, 0, 0x3ff);
+
+	auto awb64Config = params->block<BlockType::Awb64>();
+	awb64Config.setEnabled(true);
+
+	/* Configure the measure window for AWB64. */
+	awb64Config->awb_wnd = context.configuration.awb.measureWindow;
+
+	/* sRGB to XYZ matrix for the CSM */
+	auto csm = Matrix<float, 3, 3>({ 0.4124564, 0.3575761, 0.1804375,
+					 0.2126729, 0.7151522, 0.0721750,
+					 0.0193339, 0.1191920, 0.9503041 });
+	/* FIXME: Figure out actual representation
+	 * Assuming Q4.7
+	 */
+	for (unsigned int i = 0; i < 3; i++) {
+		for (unsigned int j = 0; j < 3; j++)
+			awb64Config->cc_coeff[i][j] =
+				utils::floatingToFixedPoint<2, 9, uint16_t, double>(csm[i][j]);
+	}
+
+
+	/* Configure min/max values */
+	awb64Config->min_max_r = 0xff00;
+	awb64Config->min_max_g = 0xff00;
+	awb64Config->min_max_b = 0xff00;
+	awb64Config->min_div = 0;
+
+	/* Disable all extra features */
+	awb64Config->enable_median_filter = 0;
+	awb64Config->chrom_switch = 1;
+	awb64Config->ellip_unite = 0;
+
+	/* Configure ellipse 0 */
+	awb64Config->ellip[0].cen_x = frameContext.awb.center.x;
+	awb64Config->ellip[0].cen_y = frameContext.awb.center.y;
+	awb64Config->ellip[0].ctm[0] = utils::floatingToFixedPoint<2, 10, uint16_t, double>(1.0);
+	awb64Config->ellip[0].ctm[1] = utils::floatingToFixedPoint<1, 8, uint16_t, double>(0.0);
+	awb64Config->ellip[0].ctm[2] = utils::floatingToFixedPoint<2, 10, uint16_t, double>(0.0);
+	awb64Config->ellip[0].ctm[3] = utils::floatingToFixedPoint<1, 8, uint16_t, double>(1.0);
+
+	awb64Config->ellip[0].rmax = frameContext.awb.rmax;
 
 	/* If we have already set the AWB measurement parameters, return. */
 	if (frame > 0)
@@ -178,46 +236,6 @@ void Awb::prepare(IPAContext &context, const uint32_t frame,
 		awbConfig->min_c = 16;
 		awbConfig->max_csum = 250;
 	}
-
-	auto awb64Config = params->block<BlockType::Awb64>();
-	awb64Config.setEnabled(true);
-
-	/* Configure the measure window for AWB. */
-	awb64Config->awb_wnd = context.configuration.awb.measureWindow;
-
-	/* Identity matrix for the CSM */
-	auto csm = Matrix<float, 3, 3>::identity();
-	/* FIXME: Figure out actual representation
-	 * Assuming Q4.7
-	 */
-	for (unsigned int i = 0; i < 3; i++) {
-		for (unsigned int j = 0; j < 3; j++)
-			awb64Config->cc_coeff[i][j] =
-				utils::floatingToFixedPoint<4, 7, uint16_t, double>(csm[i][j]);
-	}
-
-
-	/* Configure min/max values */
-	awb64Config->min_max_r = 0xff00;
-	awb64Config->min_max_g = 0xff00;
-	awb64Config->min_max_b = 0xff00;
-	awb64Config->min_div = 10;
-
-	/* Disable all extra features */
-	awb64Config->enable_median_filter = 0;
-	awb64Config->chrom_switch = 0;
-	awb64Config->ellip_unite = 0;
-
-	/* Configure ellipse 0 */
-	awb64Config->ellip[0].cen_x = 512;
-	awb64Config->ellip[0].cen_y = 512;
-	/* Somehow this isn't working, but keeping them to 0 works
-	awb64Config->ellip[0].ctm[0] = utils::floatingToFixedPoint<2, 10, uint16_t, double>(1.0);
-	awb64Config->ellip[0].ctm[1] = utils::floatingToFixedPoint<1, 8, uint16_t, double>(1.0);
-	awb64Config->ellip[0].ctm[2] = utils::floatingToFixedPoint<2, 10, uint16_t, double>(1.0);
-	awb64Config->ellip[0].ctm[3] = utils::floatingToFixedPoint<1, 8, uint16_t, double>(1.0);
-	*/
-	awb64Config->ellip[0].rmax = 200 * 200;
 }
 
 uint32_t Awb::estimateCCT(double red, double green, double blue)
@@ -267,6 +285,8 @@ void Awb::process(IPAContext &context,
 			static_cast<float>(frameContext.awb.gains.red),
 			static_cast<float>(frameContext.awb.gains.blue)
 		});
+	metadata.set(controls::Awb64Rmax, frameContext.awb.rmax);
+	metadata.set(controls::Awb64Center, { frameContext.awb.center.x, frameContext.awb.center.y });
 
 	if (rgbMode_) {
 		greenMean = awb->awb_mean[0].mean_y_or_g;
