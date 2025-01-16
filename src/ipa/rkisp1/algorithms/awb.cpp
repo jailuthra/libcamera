@@ -57,15 +57,18 @@ int Awb::configure(IPAContext &context,
 	context.activeState.awb.center.x = 0;
 	context.activeState.awb.center.y = 0;
 	context.activeState.awb.autoEnabled = true;
+	context.activeState.awb.csmMode = 0;
+	context.activeState.awb.medianFilter = 0;
+	context.activeState.awb.chromaSwitch = 0;
 
 	/*
 	 * Define the measurement window for AWB as a centered rectangle
 	 * covering 3/4 of the image width and height.
 	 */
-	context.configuration.awb.measureWindow.h_offs = configInfo.outputSize.width / 8;
-	context.configuration.awb.measureWindow.v_offs = configInfo.outputSize.height / 8;
-	context.configuration.awb.measureWindow.h_size = 3 * configInfo.outputSize.width / 4;
-	context.configuration.awb.measureWindow.v_size = 3 * configInfo.outputSize.height / 4;
+	context.configuration.awb.measureWindow.h_offs = 0; //configInfo.outputSize.width / 8;
+	context.configuration.awb.measureWindow.v_offs = 0; //configInfo.outputSize.height / 8;
+	context.configuration.awb.measureWindow.h_size = configInfo.outputSize.width;
+	context.configuration.awb.measureWindow.v_size = configInfo.outputSize.height;
 
 	context.configuration.awb.enabled = true;
 
@@ -100,6 +103,7 @@ void Awb::queueRequest(IPAContext &context,
 			<< ", blue: " << awb.gains.manual.blue;
 	}
 
+	/* AWB64 */
 	const auto &rmax = controls.get(controls::Awb64Rmax);
 	if (rmax) {
 		awb.rmax = *rmax;
@@ -113,6 +117,24 @@ void Awb::queueRequest(IPAContext &context,
 	}
 	frameContext.awb.center.x = awb.center.x;
 	frameContext.awb.center.y = awb.center.y;
+
+	const auto &csm = controls.get(controls::Awb64ColorspaceMode);
+	if (csm) {
+		awb.csmMode = *csm;
+	}
+	frameContext.awb.csmMode = static_cast<enum controls::Awb64ColorspaceModeEnum>(awb.csmMode);
+
+	const auto &chromaSwitch = controls.get(controls::Awb64ChromaSwitch);
+	if (chromaSwitch) {
+		awb.chromaSwitch = *chromaSwitch;
+	}
+	frameContext.awb.chromaSwitch = awb.chromaSwitch;
+
+	const auto &medianFilter = controls.get(controls::Awb64MedianFilter);
+	if (medianFilter) {
+		awb.medianFilter = *medianFilter;
+	}
+	frameContext.awb.medianFilter = awb.medianFilter;
 
 	frameContext.awb.autoEnabled = awb.autoEnabled;
 
@@ -154,16 +176,36 @@ void Awb::prepare(IPAContext &context, const uint32_t frame,
 	awb64Config->awb_wnd = context.configuration.awb.measureWindow;
 
 	/* sRGB to XYZ matrix for the CSM */
-	auto csm = Matrix<float, 3, 3>({ 0.4124564, 0.3575761, 0.1804375,
-					 0.2126729, 0.7151522, 0.0721750,
-					 0.0193339, 0.1191920, 0.9503041 });
+	auto CsmIdent = Matrix<float, 3, 3>::identity();
+	auto CsmXYZ = Matrix<float, 3, 3>({ 0.4124564, 0.3575761, 0.1804375,
+					    0.2126729, 0.7151522, 0.0721750,
+					    0.0193339, 0.1191920, 0.9503041 });
+	auto csmLMS = Matrix<float, 3, 3>({ 0.31396895, 0.63944142, 0.04649033,
+					 0.15378767, 0.75183951, 0.04296578,
+					 0.01775239, 0.10944209, 0.87256922 });
+
+	Matrix<float, 3, 3> csm;
+
+	switch(frameContext.awb.csmMode) {
+	case controls::Awb64ColorspaceXYZ:
+		csm = CsmXYZ;
+		break;
+	case controls::Awb64ColorspaceLMS:
+		csm = csmLMS;
+		break;
+	case controls::Awb64ColorspaceDefault:
+	default:
+		csm = CsmIdent;
+		break;
+	}
+
 	/* FIXME: Figure out actual representation
-	 * Assuming Q4.7
+	 * Assuming Q3.8
 	 */
 	for (unsigned int i = 0; i < 3; i++) {
 		for (unsigned int j = 0; j < 3; j++)
 			awb64Config->cc_coeff[i][j] =
-				utils::floatingToFixedPoint<2, 9, uint16_t, double>(csm[i][j]);
+				utils::floatingToFixedPoint<3, 8, uint16_t, double>(csm[i][j]);
 	}
 
 
@@ -174,17 +216,17 @@ void Awb::prepare(IPAContext &context, const uint32_t frame,
 	awb64Config->min_div = 0;
 
 	/* Disable all extra features */
-	awb64Config->enable_median_filter = 0;
-	awb64Config->chrom_switch = 1;
+	awb64Config->enable_median_filter = frameContext.awb.medianFilter;
+	awb64Config->chrom_switch = frameContext.awb.chromaSwitch;
 	awb64Config->ellip_unite = 0;
 
 	/* Configure ellipse 0 */
 	awb64Config->ellip[0].cen_x = frameContext.awb.center.x;
 	awb64Config->ellip[0].cen_y = frameContext.awb.center.y;
-	awb64Config->ellip[0].ctm[0] = utils::floatingToFixedPoint<2, 10, uint16_t, double>(1.0);
-	awb64Config->ellip[0].ctm[1] = utils::floatingToFixedPoint<1, 8, uint16_t, double>(0.0);
-	awb64Config->ellip[0].ctm[2] = utils::floatingToFixedPoint<2, 10, uint16_t, double>(0.0);
-	awb64Config->ellip[0].ctm[3] = utils::floatingToFixedPoint<1, 8, uint16_t, double>(1.0);
+	awb64Config->ellip[0].ctm[0] = utils::floatingToFixedPoint<4, 8, uint16_t, double>(1.0);
+	awb64Config->ellip[0].ctm[1] = utils::floatingToFixedPoint<4, 5, uint16_t, double>(0.0);
+	awb64Config->ellip[0].ctm[2] = utils::floatingToFixedPoint<4, 8, uint16_t, double>(0.0);
+	awb64Config->ellip[0].ctm[3] = utils::floatingToFixedPoint<4, 5, uint16_t, double>(1.0);
 
 	awb64Config->ellip[0].rmax = frameContext.awb.rmax;
 

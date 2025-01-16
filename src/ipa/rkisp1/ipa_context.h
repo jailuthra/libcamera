@@ -106,6 +106,10 @@ struct IPAActiveState {
 		} center;
 
 		int32_t rmax;
+
+		int32_t csmMode;
+		bool medianFilter;
+		bool chromaSwitch;
 	} awb;
 
 	struct {
@@ -159,6 +163,10 @@ struct IPAFrameContext : public FrameContext {
 		} center;
 
 		bool autoEnabled;
+
+		enum controls::Awb64ColorspaceModeEnum csmMode;
+		bool medianFilter;
+		bool chromaSwitch;
 	} awb;
 
 	struct {

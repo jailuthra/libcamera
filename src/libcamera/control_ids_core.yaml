@@ -344,6 +344,16 @@ controls:
         \sa AwbEnable
       size: [2]
 
+  - Awb64ChromaSwitch:
+      type: bool
+      description: |
+        Set to true to use chromaticities space, false for RGB space
+
+  - Awb64MedianFilter:
+      type: bool
+      description: |
+        Set to true to enable median filter
+
   - Awb64Rmax:
       type: int32_t
       description: |
@@ -354,6 +364,27 @@ controls:
       description: |
         Max radius of AWB64 ellipse region
       size: [2]
+
+  - Awb64ColorspaceMode:
+      type: int32_t
+      description: |
+        Max radius of AWB64 ellipse region
+
+      enum:
+        - name: Awb64ColorspaceDefault
+          value: 0
+          description: |
+            Identity matrix
+
+        - name: Awb64ColorspaceXYZ
+          value: 1
+          description: |
+            RGB to CIE XYZ matrix
+
+        - name: Awb64ColorspaceLMS
+          value: 2
+          description: |
+            RGB to LMS matrix
 
   - ColourTemperature:
       type: int32_t
