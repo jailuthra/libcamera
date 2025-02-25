@@ -205,7 +205,7 @@ void Awb::prepare(IPAContext &context, const uint32_t frame,
 	for (unsigned int i = 0; i < 3; i++) {
 		for (unsigned int j = 0; j < 3; j++)
 			awb64Config->cc_coeff[i][j] =
-				utils::floatingToFixedPoint<3, 8, uint16_t, double>(csm[i][j]);
+				utils::floatingToFixedPoint<3, 8, int16_t, double>(csm[i][j]);
 	}
 
 
@@ -223,10 +223,10 @@ void Awb::prepare(IPAContext &context, const uint32_t frame,
 	/* Configure ellipse 0 */
 	awb64Config->ellip[0].cen_x = frameContext.awb.center.x;
 	awb64Config->ellip[0].cen_y = frameContext.awb.center.y;
-	awb64Config->ellip[0].ctm[0] = utils::floatingToFixedPoint<4, 8, uint16_t, double>(1.0);
-	awb64Config->ellip[0].ctm[1] = utils::floatingToFixedPoint<4, 5, uint16_t, double>(0.0);
-	awb64Config->ellip[0].ctm[2] = utils::floatingToFixedPoint<4, 8, uint16_t, double>(0.0);
-	awb64Config->ellip[0].ctm[3] = utils::floatingToFixedPoint<4, 5, uint16_t, double>(1.0);
+	awb64Config->ellip[0].ctm[0] = utils::floatingToFixedPoint<4, 8, int16_t, double>(1.0);
+	awb64Config->ellip[0].ctm[1] = utils::floatingToFixedPoint<1, 8, int16_t, double>(0.0);
+	awb64Config->ellip[0].ctm[2] = utils::floatingToFixedPoint<4, 8, int16_t, double>(0.0);
+	awb64Config->ellip[0].ctm[3] = utils::floatingToFixedPoint<1, 8, int16_t, double>(1.0);
 
 	awb64Config->ellip[0].rmax = frameContext.awb.rmax;
 
