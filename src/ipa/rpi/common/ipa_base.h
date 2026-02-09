@@ -79,6 +79,8 @@ protected:
 	/* Whether the stitch block (if available) needs to swap buffers. */
 	bool stitchSwapBuffers_;
 
+	virtual size_t platformParamsBytesUsed() const { return 0; }
+
 private:
 	/* Number of metadata objects available in the context list. */
 	static constexpr unsigned int numMetadataContexts = 16;
@@ -87,6 +89,7 @@ private:
 	virtual int32_t platformStart(const ControlList &controls, StartResult *result) = 0;
 	virtual int32_t platformConfigure(const ConfigParams &params, ConfigResult *result) = 0;
 
+	virtual void platformParamsBufferInit([[maybe_unused]] Span<uint8_t> paramsBuffer) {}
 	virtual void platformPrepareIsp(const PrepareParams &params,
 					RPiController::Metadata &rpiMetadata) = 0;
 	virtual void platformPrepareAgc(RPiController::Metadata &rpiMetadata) = 0;

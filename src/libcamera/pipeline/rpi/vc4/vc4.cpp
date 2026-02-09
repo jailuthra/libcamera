@@ -32,7 +32,7 @@ using StreamParams = RPi::RPiCameraConfiguration::StreamParams;
 namespace {
 
 enum class Unicam : unsigned int { Image, Embedded };
-enum class Isp : unsigned int { Input, Output0, Output1, Stats };
+enum class Isp : unsigned int { Input, Output0, Output1, Stats, Params };
 
 static constexpr unsigned int kUnicamSinkPad = 0;
 static constexpr unsigned int kUnicamSourceImagePad = 1;
@@ -84,15 +84,15 @@ public:
 	void ispOutputDequeue(FrameBuffer *buffer);
 
 	void processStatsComplete(const ipa::RPi::BufferIds &buffers);
-	void prepareIspComplete(const ipa::RPi::BufferIds &buffers, bool stitchSwapBuffers);
-	void setIspControls(const ControlList &controls);
+	void prepareIspComplete(const ipa::RPi::BufferIds &buffers, bool stitchSwapBuffers,
+				unsigned int paramsBytesUsed);
 	void setCameraTimeout(uint32_t maxFrameLengthMs);
 
 	std::unique_ptr<V4L2Subdevice> unicamSubdev_;
 
 	/* Array of Unicam and ISP device streams and associated buffers/streams. */
 	RPi::Device<Unicam, 2> unicam_;
-	RPi::Device<Isp, 4> isp_;
+	RPi::Device<Isp, 5> isp_;
 
 	/* DMAHEAP allocation helper. */
 	DmaBufAllocator dmaHeap_;
@@ -266,6 +266,13 @@ int PipelineHandlerVc4::allocateBuffers(Camera *camera)
 				     std::max<int>(data->config_.minUnicamBuffers,
 						   minBuffers - numRawBuffers);
 
+		} else if (stream == &data->isp_[Isp::Params]) {
+			/*
+			 * Parameter buffers are dequeued asyncrhonously by the driver
+			 * as soon as it sends each parameter to VC4. Ideally, 1 buffer
+			 * would be sufficient, but we alot 2 to be safe.
+			 */
+			numBuffers = 2;
 		} else if (stream == &data->unicam_[Unicam::Embedded]) {
 			/*
 			 * Embedded data buffers are (currently) for internal use, and
@@ -302,10 +309,11 @@ int PipelineHandlerVc4::allocateBuffers(Camera *camera)
 	}
 
 	/*
-	 * Pass the stats and embedded data buffers to the IPA. No other
+	 * Pass the stats, embedded data and params buffers to the IPA. No other
 	 * buffers need to be passed.
 	 */
 	mapBuffers(camera, data->isp_[Isp::Stats].getBuffers(), RPi::MaskStats);
+	mapBuffers(camera, data->isp_[Isp::Params].getBuffers(), RPi::MaskParams);
 	if (data->sensorMetadata_)
 		mapBuffers(camera, data->unicam_[Unicam::Embedded].getBuffers(),
 			   RPi::MaskEmbeddedData);
@@ -324,13 +332,14 @@ int PipelineHandlerVc4::platformRegister(std::unique_ptr<RPi::CameraData> &camer
 
 	MediaEntity *unicamSubdev = unicam->getEntityByName("unicam");
 	MediaEntity *unicamImage = unicam->getEntityByName("unicam-image");
-	MediaEntity *ispOutput0 = isp->getEntityByName("bcm2835-isp0-output0");
-	MediaEntity *ispCapture1 = isp->getEntityByName("bcm2835-isp0-capture1");
-	MediaEntity *ispCapture2 = isp->getEntityByName("bcm2835-isp0-capture2");
-	MediaEntity *ispCapture3 = isp->getEntityByName("bcm2835-isp0-capture3");
+	MediaEntity *ispOutput0 = isp->getEntityByName("bcm2835-isp-output0");
+	MediaEntity *ispCapture0 = isp->getEntityByName("bcm2835-isp-capture0");
+	MediaEntity *ispCapture1 = isp->getEntityByName("bcm2835-isp-capture1");
+	MediaEntity *ispCapture2 = isp->getEntityByName("bcm2835-isp-stats2");
+	MediaEntity *ispParams = isp->getEntityByName("bcm2835-isp-params");
 
-	if (!unicamSubdev || !unicamImage || !ispOutput0 || !ispCapture1 ||
-	    !ispCapture2 || !ispCapture3)
+	if (!unicamSubdev || !unicamImage || !ispOutput0 || !ispCapture0 ||
+	    !ispCapture1 || !ispCapture2 || !ispParams)
 		return -ENOENT;
 
 	/* Create the unicam subdev and video streams. */
@@ -347,9 +356,12 @@ int PipelineHandlerVc4::platformRegister(std::unique_ptr<RPi::CameraData> &camer
 
 	/* Tag the ISP input stream as an import stream. */
 	data->isp_[Isp::Input] = RPi::Stream("ISP Input", ispOutput0, StreamFlag::ImportOnly);
-	data->isp_[Isp::Output0] = RPi::Stream("ISP Output0", ispCapture1);
-	data->isp_[Isp::Output1] = RPi::Stream("ISP Output1", ispCapture2);
-	data->isp_[Isp::Stats] = RPi::Stream("ISP Stats", ispCapture3);
+	data->isp_[Isp::Output0] = RPi::Stream("ISP Output0", ispCapture0);
+	data->isp_[Isp::Output1] = RPi::Stream("ISP Output1", ispCapture1);
+	data->isp_[Isp::Stats] = RPi::Stream("ISP Stats", ispCapture2);
+	/* Tag the ISP params stream as MMAP (for writing into it in the IPA) and recurrent. */
+	data->isp_[Isp::Params] = RPi::Stream("ISP Params", ispParams,
+					      StreamFlag::RequiresMmap | StreamFlag::Recurrent);
 
 	/* Wire up all the buffer connections. */
 	data->unicam_[Unicam::Image].dev()->bufferReady.connect(data, &Vc4CameraData::unicamBufferDequeue);
@@ -357,6 +369,7 @@ int PipelineHandlerVc4::platformRegister(std::unique_ptr<RPi::CameraData> &camer
 	data->isp_[Isp::Output0].dev()->bufferReady.connect(data, &Vc4CameraData::ispOutputDequeue);
 	data->isp_[Isp::Output1].dev()->bufferReady.connect(data, &Vc4CameraData::ispOutputDequeue);
 	data->isp_[Isp::Stats].dev()->bufferReady.connect(data, &Vc4CameraData::ispOutputDequeue);
+	data->isp_[Isp::Params].dev()->bufferReady.connect(data, &Vc4CameraData::ispOutputDequeue);
 
 	if (data->sensorMetadata_ ^ !!data->unicam_[Unicam::Embedded].dev()) {
 		LOG(RPI, Warning) << "Mismatch between Unicam and CamHelper for embedded data usage!";
@@ -398,7 +411,6 @@ int PipelineHandlerVc4::platformRegister(std::unique_ptr<RPi::CameraData> &camer
 	/* Write up all the IPA connections. */
 	data->ipa_->processStatsComplete.connect(data, &Vc4CameraData::processStatsComplete);
 	data->ipa_->prepareIspComplete.connect(data, &Vc4CameraData::prepareIspComplete);
-	data->ipa_->setIspControls.connect(data, &Vc4CameraData::setIspControls);
 	data->ipa_->setCameraTimeout.connect(data, &Vc4CameraData::setCameraTimeout);
 
 	/*
@@ -757,6 +769,16 @@ int Vc4CameraData::platformConfigure(const RPi::RPiCameraConfiguration *rpiConfi
 		return ret;
 	}
 
+	/* ISP parameters input format. */
+	format = {};
+	format.fourcc = V4L2PixelFormat(V4L2_META_FMT_BCM2835_ISP_PARAMS);
+	ret = isp_[Isp::Params].dev()->setFormat(&format);
+	if (ret) {
+		LOG(RPI, Error) << "Failed to set format on ISP params stream: "
+				<< format;
+		return ret;
+	}
+
 	/*
 	 * Configure the Unicam embedded data output format only if the sensor
 	 * supports it.
@@ -800,8 +822,6 @@ int Vc4CameraData::platformConfigure(const RPi::RPiCameraConfiguration *rpiConfi
 
 int Vc4CameraData::platformConfigureIpa(ipa::RPi::ConfigParams &params)
 {
-	params.ispControls = isp_[Isp::Input].dev()->controls();
-
 	/* Allocate the lens shading table via dmaHeap and pass to the IPA. */
 	if (!lsTable_.isValid()) {
 		lsTable_ = SharedFD(dmaHeap_.alloc("ls_grid", ipa::RPi::MaxLsGridSize));
@@ -945,43 +965,38 @@ void Vc4CameraData::processStatsComplete(const ipa::RPi::BufferIds &buffers)
 }
 
 void Vc4CameraData::prepareIspComplete(const ipa::RPi::BufferIds &buffers,
-				       [[maybe_unused]] bool stitchSwapBuffers)
+				       [[maybe_unused]] bool stitchSwapBuffers,
+				       unsigned int paramsBytesUsed)
 {
 	unsigned int embeddedId = buffers.embedded & RPi::MaskID;
-	unsigned int bayer = buffers.bayer & RPi::MaskID;
+	unsigned int bayerId = buffers.bayer & RPi::MaskID;
+	unsigned int paramsId = buffers.params & RPi::MaskID;
 	FrameBuffer *buffer;
 
 	if (!isRunning())
 		return;
 
-	buffer = unicam_[Unicam::Image].getBuffers().at(bayer & RPi::MaskID).buffer;
-	LOG(RPI, Debug) << "Input re-queue to ISP, buffer id " << (bayer & RPi::MaskID)
+	/* Queue params buffer */
+	buffer = isp_[Isp::Params].getBuffers().at(paramsId).buffer;
+	buffer->_d()->metadata().planes()[0].bytesused = paramsBytesUsed;
+	LOG(RPI, Debug) << "Params re-queue to ISP, buffer id " << paramsId
+			<< ", timestamp: " << buffer->metadata().timestamp
+			<< ", bytes used: " << buffer->_d()->metadata().planes()[0].bytesused;
+
+	isp_[Isp::Params].queueBuffer(buffer);
+
+	/* Queue input buffer */
+	buffer = unicam_[Unicam::Image].getBuffers().at(bayerId).buffer;
+	LOG(RPI, Debug) << "Input re-queue to ISP, buffer id " << bayerId
 			<< ", timestamp: " << buffer->metadata().timestamp;
 
 	isp_[Isp::Input].queueBuffer(buffer);
 
 	if (sensorMetadata_ && embeddedId) {
-		buffer = unicam_[Unicam::Embedded].getBuffers().at(embeddedId & RPi::MaskID).buffer;
+		buffer = unicam_[Unicam::Embedded].getBuffers().at(embeddedId).buffer;
 		handleStreamBuffer(buffer, &unicam_[Unicam::Embedded]);
 	}
 
-	handleState();
-}
-
-void Vc4CameraData::setIspControls(const ControlList &controls)
-{
-	ControlList ctrls = controls;
-
-	if (ctrls.contains(V4L2_CID_USER_BCM2835_ISP_LENS_SHADING)) {
-		ControlValue &value =
-			const_cast<ControlValue &>(ctrls.get(V4L2_CID_USER_BCM2835_ISP_LENS_SHADING));
-		Span<uint8_t> s = value.data();
-		bcm2835_isp_lens_shading *ls =
-			reinterpret_cast<bcm2835_isp_lens_shading *>(s.data());
-		ls->dmabuf = lsTable_.get();
-	}
-
-	isp_[Isp::Input].dev()->setControls(&ctrls);
 	handleState();
 }
 
@@ -1026,9 +1041,6 @@ void Vc4CameraData::tryRunPipeline()
 
 	unsigned int bayer = unicam_[Unicam::Image].getBufferId(bayerFrame.buffer);
 
-	LOG(RPI, Debug) << "Signalling prepareIsp:"
-			<< " Bayer buffer id: " << bayer;
-
 	ipa::RPi::PrepareParams params;
 	params.buffers.bayer = RPi::MaskBayerData | bayer;
 	params.sensorControls = std::move(bayerFrame.controls);
@@ -1036,6 +1048,16 @@ void Vc4CameraData::tryRunPipeline()
 	params.ipaContext = request->sequence();
 	params.delayContext = bayerFrame.delayContext;
 	params.buffers.embedded = 0;
+
+	const RPi::BufferObject &paramBufObj = isp_[Isp::Params].acquireBuffer();
+	ASSERT(paramBufObj.mapped);
+
+	unsigned int param = isp_[Isp::Params].getBufferId(paramBufObj.buffer);
+	params.buffers.params = RPi::MaskParams | param;
+
+	LOG(RPI, Debug) << "Signalling prepareIsp:"
+			<< " Bayer buffer id: " << bayer
+			<< " Param buffer id: " << param;
 
 	if (embeddedBuffer) {
 		unsigned int embeddedId = unicam_[Unicam::Embedded].getBufferId(embeddedBuffer);
