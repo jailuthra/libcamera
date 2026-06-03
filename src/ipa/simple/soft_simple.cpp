@@ -228,10 +228,9 @@ int IPASoftSimple::configure(const IPAConfigInfo &configInfo)
 		context_.configuration.agc.againMin = camHelper_->gain(againMin);
 		context_.configuration.agc.againMax = camHelper_->gain(againMax);
 		context_.configuration.agc.again10 = std::max(context_.configuration.agc.againMin, 1.0);
+		double againNext = camHelper_->gain(std::min(againMin + 1, againMax));
 		context_.configuration.agc.againMinStep =
-			(context_.configuration.agc.againMax -
-			 context_.configuration.agc.againMin) /
-			100.0;
+			againNext - context_.configuration.agc.againMin;
 		if (camHelper_->blackLevel().has_value()) {
 			/*
 			 * The black level from camHelper_ is a 16 bit value, software ISP
