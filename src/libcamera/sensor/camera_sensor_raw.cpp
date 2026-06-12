@@ -357,29 +357,6 @@ std::optional<int> CameraSensorRaw::init()
 	 */
 
 	/*
-	 * Get the native sensor CFA pattern. It is simpler to retrieve it from
-	 * the internal image sink pad as it is guaranteed to expose a single
-	 * format, and is not affected by flips.
-	 */
-	V4L2Subdevice::Formats formats = subdev_->formats(streams_.image.sink);
-	if (formats.size() != 1) {
-		LOG(CameraSensor, Error)
-			<< "Image pad has " << formats.size()
-			<< " formats, expected 1";
-		return { -EINVAL };
-	}
-
-	uint32_t nativeFormat = formats.cbegin()->first;
-	const BayerFormat &bayerFormat = BayerFormat::fromMbusCode(nativeFormat);
-	if (!bayerFormat.isValid()) {
-		LOG(CameraSensor, Error)
-			<< "Invalid native format " << nativeFormat;
-		return { 0 };
-	}
-
-	cfaPattern_ = bayerFormat.order;
-
-	/*
 	 * Retrieve and cache the media bus codes and sizes on the source image
 	 * stream.
 	 */
@@ -454,6 +431,7 @@ std::optional<int> CameraSensorRaw::init()
 	static constexpr uint32_t mandatoryControls[] = {
 		V4L2_CID_ANALOGUE_GAIN,
 		V4L2_CID_CAMERA_ORIENTATION,
+		V4L2_CID_CFA_PATTERN,
 		V4L2_CID_EXPOSURE,
 		V4L2_CID_HBLANK,
 		V4L2_CID_PIXEL_RATE,
@@ -477,6 +455,32 @@ std::optional<int> CameraSensorRaw::init()
 		LOG(CameraSensor, Error)
 			<< "See Documentation/sensor_driver_requirements.rst in the libcamera sources for more information";
 		return { ret };
+	}
+
+	/*
+	 * Get the native sensor CFA pattern.
+	 */
+	ControlList ctrls = subdev_->getControls({ { V4L2_CID_CFA_PATTERN } });
+	int cfaPattern = ctrls.get(V4L2_CID_CFA_PATTERN).get<int32_t>();
+
+	switch (cfaPattern) {
+	case V4L2_CFA_PATTERN_GRBG:
+		cfaPattern_ = BayerFormat::GRBG;
+		break;
+	case V4L2_CFA_PATTERN_RGGB:
+		cfaPattern_ = BayerFormat::RGGB;
+		break;
+	case V4L2_CFA_PATTERN_BGGR:
+		cfaPattern_ = BayerFormat::BGGR;
+		break;
+	case V4L2_CFA_PATTERN_GBRG:
+		cfaPattern_ = BayerFormat::GBRG;
+		break;
+	default:
+		LOG(CameraSensor, Error)
+			<< "Unsupported CFA pattern "
+			<< cfaPattern;
+		return -EINVAL;
 	}
 
 	/*
