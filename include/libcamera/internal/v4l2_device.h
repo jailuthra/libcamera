@@ -75,6 +75,10 @@ private:
 	static std::unique_ptr<ControlId> v4l2ControlId(const v4l2_query_ext_ctrl &ctrl);
 	std::optional<ControlInfo> v4l2ControlInfo(const v4l2_query_ext_ctrl &ctrl);
 	std::optional<ControlInfo> v4l2MenuControlInfo(const v4l2_query_ext_ctrl &ctrl);
+	std::optional<ControlValue> v4l2MenuControlValue(const v4l2_query_ext_ctrl &ctrl,
+							 int32_t index);
+	std::optional<int32_t> v4l2MenuControlIndex(const v4l2_query_ext_ctrl &ctrl,
+						    const ControlValue &value);
 
 	void listControls();
 	void updateControls(ControlList *ctrls,
