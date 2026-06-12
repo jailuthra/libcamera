@@ -196,8 +196,11 @@ struct v4l2_subdev_capability {
 /* The v4l2 sub-device video device node is registered in read-only mode. */
 #define V4L2_SUBDEV_CAP_RO_SUBDEV		0x00000001
 
+/* Reserved, old STREAMS bit libcamera used before API stabilisation. */
+/* #define V4L2_SUBDEV_CAP_STREAMS_PRELIMINARY	0x00000002 */
+
 /* The v4l2 sub-device supports routing and multiplexed streams. */
-#define V4L2_SUBDEV_CAP_STREAMS			0x00000002
+#define V4L2_SUBDEV_CAP_STREAMS			0x00000004
 
 /*
  * Is the route active? An active route will start when streaming is enabled
@@ -209,6 +212,10 @@ struct v4l2_subdev_capability {
  * unset.
  */
 #define V4L2_SUBDEV_ROUTE_FL_IMMUTABLE		(1U << 1)
+/*
+ * Is the route static? Routes with the STATIC flag are not removable.
+ */
+#define V4L2_SUBDEV_ROUTE_FL_STATIC		(1U << 2)
 
 /**
  * struct v4l2_subdev_route - A route inside a subdev
@@ -262,6 +269,12 @@ struct v4l2_subdev_routing {
  * V4L2_SUBDEV_FORMAT_ACTIVE by the kernel.
  */
 #define V4L2_SUBDEV_CLIENT_CAP_INTERVAL_USES_WHICH	(1ULL << 1)
+
+/*
+ * The client is aware of the common raw sensor model and expects that on camera
+ * sensor UAPI where supported.
+ */
+#define V4L2_SUBDEV_CLIENT_CAP_COMMON_RAW_SENSOR	(1ULL << 2)
 
 /**
  * struct v4l2_subdev_client_capability - Capabilities of the client accessing

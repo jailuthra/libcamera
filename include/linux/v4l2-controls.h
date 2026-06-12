@@ -115,11 +115,13 @@ enum v4l2_colorfx {
 
 /* USER-class private control IDs */
 
+#ifndef __KERNEL__
 /*
  * The base for the meye driver controls. This driver was removed, but
  * we keep this define in case any software still uses it.
  */
 #define V4L2_CID_USER_MEYE_BASE			(V4L2_CID_USER_BASE + 0x1000)
+#endif
 
 /* The base for the bttv driver controls.
  * We reserve 32 controls for this driver. */
@@ -180,7 +182,8 @@ enum v4l2_colorfx {
 
 /* The base for the bcm2835-isp driver controls.
  * We reserve 16 controls for this driver. */
-#define V4L2_CID_USER_BCM2835_ISP_BASE		(V4L2_CID_USER_BASE + 0x10e0)
+#define V4L2_CID_USER_BCM2835_ISP_BASE         (V4L2_CID_USER_BASE + 0x10e0)
+
 /*
  * The base for Allegro driver controls.
  * We reserve 16 controls for this driver.
@@ -439,9 +442,11 @@ enum v4l2_mpeg_video_multi_slice_mode {
 	V4L2_MPEG_VIDEO_MULTI_SLICE_MODE_SINGLE		= 0,
 	V4L2_MPEG_VIDEO_MULTI_SLICE_MODE_MAX_MB		= 1,
 	V4L2_MPEG_VIDEO_MULTI_SLICE_MODE_MAX_BYTES	= 2,
+#ifndef __KERNEL__
 	/* Kept for backwards compatibility reasons. Stupid typo... */
 	V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_MB		= 1,
 	V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_BYTES	= 2,
+#endif
 };
 #define V4L2_CID_MPEG_VIDEO_VBV_SIZE			(V4L2_CID_CODEC_BASE+222)
 #define V4L2_CID_MPEG_VIDEO_DEC_PTS			(V4L2_CID_CODEC_BASE+223)
@@ -463,6 +468,8 @@ enum v4l2_mpeg_video_intra_refresh_period_type {
 	V4L2_CID_MPEG_VIDEO_INTRA_REFRESH_PERIOD_TYPE_RANDOM	= 0,
 	V4L2_CID_MPEG_VIDEO_INTRA_REFRESH_PERIOD_TYPE_CYCLIC	= 1,
 };
+
+#define V4L2_CID_MPEG_VIDEO_BACKGROUND_DETECTION	(V4L2_CID_CODEC_BASE + 238)
 
 /* CIDs for the MPEG-2 Part 2 (H.262) codec */
 #define V4L2_CID_MPEG_VIDEO_MPEG2_LEVEL			(V4L2_CID_CODEC_BASE+270)
@@ -1235,6 +1242,35 @@ enum v4l2_jpeg_chroma_subsampling {
 #define V4L2_CID_UNIT_CELL_SIZE			(V4L2_CID_IMAGE_SOURCE_CLASS_BASE + 8)
 #define V4L2_CID_NOTIFY_GAINS			(V4L2_CID_IMAGE_SOURCE_CLASS_BASE + 9)
 
+#define V4L2_CID_CFA_PATTERN			(V4L2_CID_IMAGE_SOURCE_CLASS_BASE + 10)
+#define V4L2_CFA_PATTERN_GRBG			0U
+#define V4L2_CFA_PATTERN_RGGB			1U
+#define V4L2_CFA_PATTERN_BGGR			2U
+#define V4L2_CFA_PATTERN_GBRG			3U
+
+#define V4L2_CID_CFA_PATTERN_FLIP		(V4L2_CID_IMAGE_SOURCE_CLASS_BASE + 11)
+#define V4L2_CFA_PATTERN_FLIP_HORIZONTAL	(1U << 0)
+#define V4L2_CFA_PATTERN_FLIP_VERTICAL		(1U << 1)
+#define V4L2_CFA_PATTERN_FLIP_BOTH \
+	(V4L2_CFA_PATTERN_FLIP_HORIZONTAL | V4L2_CFA_PATTERN_FLIP_VERTICAL)
+
+#define V4L2_CID_METADATA_LAYOUT		(V4L2_CID_IMAGE_SOURCE_CLASS_BASE + 12)
+#define V4L2_METADATA_LAYOUT_CCS		1U
+#define V4L2_METADATA_LAYOUT_OV2740		2U
+
+#define V4L2_CID_BINNING_FACTORS		(V4L2_CID_IMAGE_SOURCE_CLASS_BASE + 13)
+#define V4L2_BINNING_FACTORS_MAKE(hnum, hdem, vnum, vdem)		\
+	(((__u64)(0xffff & hnum) << 48) | ((__u64)(0xffff & hdem) << 32) | \
+	 ((__u64)(0xffff & vnum) << 16) | (__u64)(0xffff & vdem))
+#define V4L2_BINNING_FACTORS_HNUM(binning)	(__u16)((binning >> 48) & 0xffff)
+#define V4L2_BINNING_FACTORS_HDEM(binning)	(__u16)((binning >> 32) & 0xffff)
+#define V4L2_BINNING_FACTORS_VNUM(binning)	(__u16)((binning >> 16) & 0xffff)
+#define V4L2_BINNING_FACTORS_VDEM(binning)	(__u16)(binning & 0xffff)
+#define V4L2_CID_SUBSAMPLING_HORIZONTAL		(V4L2_CID_IMAGE_SOURCE_CLASS_BASE + 14)
+#define V4L2_CID_SUBSAMPLING_VERTICAL		(V4L2_CID_IMAGE_SOURCE_CLASS_BASE + 15)
+
+#define V4L2_CID_FRAME_LENGTH_LINES		(V4L2_CID_IMAGE_SOURCE_CLASS_BASE + 16)
+#define V4L2_CID_LINE_LENGTH_PIXELS		(V4L2_CID_IMAGE_SOURCE_CLASS_BASE + 17)
 
 /* Image processing controls */
 
@@ -1246,6 +1282,10 @@ enum v4l2_jpeg_chroma_subsampling {
 #define V4L2_CID_TEST_PATTERN			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 3)
 #define V4L2_CID_DEINTERLACING_MODE		(V4L2_CID_IMAGE_PROC_CLASS_BASE + 4)
 #define V4L2_CID_DIGITAL_GAIN			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 5)
+#define V4L2_CID_CONFIG_MODEL			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 6)
+
+#define V4L2_CONFIG_MODEL_COMMON_RAW_SENSOR	(1U << 0)
+#define V4L2_CONFIG_MODEL_MIPI_CCS		(1U << 1)
 
 /*  DV-class control IDs defined by V4L2 */
 #define V4L2_CID_DV_CLASS_BASE			(V4L2_CTRL_CLASS_DV | 0x900)
@@ -3541,11 +3581,13 @@ struct v4l2_ctrl_av1_film_grain {
 };
 
 /* MPEG-compression definitions kept for backwards compatibility */
+#ifndef __KERNEL__
 #define V4L2_CTRL_CLASS_MPEG            V4L2_CTRL_CLASS_CODEC
 #define V4L2_CID_MPEG_CLASS             V4L2_CID_CODEC_CLASS
 #define V4L2_CID_MPEG_BASE              V4L2_CID_CODEC_BASE
 #define V4L2_CID_MPEG_CX2341X_BASE      V4L2_CID_CODEC_CX2341X_BASE
 #define V4L2_CID_MPEG_MFC51_BASE        V4L2_CID_CODEC_MFC51_BASE
+#endif
 
 #define V4L2_CID_COLORIMETRY_CLASS_BASE	(V4L2_CTRL_CLASS_COLORIMETRY | 0x900)
 #define V4L2_CID_COLORIMETRY_CLASS	(V4L2_CTRL_CLASS_COLORIMETRY | 1)
