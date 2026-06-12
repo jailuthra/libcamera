@@ -367,7 +367,21 @@ int V4L2Device::setControls(ControlList *ctrls, const V4L2Request *request)
 		}
 
 		case ControlTypeInteger64:
-			v4l2Ctrl.value64 = value.get<int64_t>();
+			if (controlInfo_[id].type == V4L2_CTRL_TYPE_INTEGER_MENU) {
+				std::optional<int32_t> index =
+					v4l2MenuControlIndex(controlInfo_[id], value);
+				if (!index) {
+					LOG(V4L2, Error)
+						<< "Control " << utils::hex(id)
+						<< " has no menu entry for value "
+						<< value.get<int64_t>();
+					return -EINVAL;
+				}
+
+				v4l2Ctrl.value = *index;
+			} else {
+				v4l2Ctrl.value64 = value.get<int64_t>();
+			}
 			break;
 
 		case ControlTypeByte: {
@@ -583,10 +597,12 @@ ControlType V4L2Device::v4l2CtrlType(uint32_t ctrlType)
 	case V4L2_CTRL_TYPE_INTEGER64:
 		return ControlTypeInteger64;
 
+	case V4L2_CTRL_TYPE_INTEGER_MENU:
+		return ControlTypeInteger64;
+
 	case V4L2_CTRL_TYPE_MENU:
 	case V4L2_CTRL_TYPE_BUTTON:
 	case V4L2_CTRL_TYPE_BITMASK:
-	case V4L2_CTRL_TYPE_INTEGER_MENU:
 		/*
 		 * More precise types may be needed, for now use a 32-bit
 		 * integer type.
@@ -668,25 +684,26 @@ std::optional<ControlInfo> V4L2Device::v4l2ControlInfo(const v4l2_query_ext_ctrl
  * \brief Create ControlInfo for a V4L2 menu control
  * \param[in] ctrl The v4l2_query_ext_ctrl that represents a V4L2 menu control
  *
- * The created ControlInfo contains indices acquired by VIDIOC_QUERYMENU.
+ * The created ControlInfo contains menu entries acquired by VIDIOC_QUERYMENU.
  *
  * \return A ControlInfo that represents \a ctrl
  */
 std::optional<ControlInfo> V4L2Device::v4l2MenuControlInfo(const struct v4l2_query_ext_ctrl &ctrl)
 {
-	std::vector<ControlValue> indices;
-	struct v4l2_querymenu menu = {};
-	menu.id = ctrl.id;
+	std::vector<ControlValue> values;
+	std::optional<ControlValue> def;
 
 	if (ctrl.minimum < 0)
 		return std::nullopt;
 
 	for (int32_t index = ctrl.minimum; index <= ctrl.maximum; ++index) {
-		menu.index = index;
-		if (ioctl(VIDIOC_QUERYMENU, &menu) != 0)
+		std::optional<ControlValue> value = v4l2MenuControlValue(ctrl, index);
+		if (!value)
 			continue;
 
-		indices.push_back(index);
+		values.push_back(*value);
+		if (index == ctrl.default_value)
+			def = *value;
 	}
 
 	/*
@@ -694,11 +711,41 @@ std::optional<ControlInfo> V4L2Device::v4l2MenuControlInfo(const struct v4l2_que
 	 * Controls without a menu option can not be set, or read, so they are
 	 * not exposed.
 	 */
-	if (indices.size() == 0)
+	if (values.empty())
 		return std::nullopt;
 
-	return ControlInfo(indices,
-			   ControlValue(static_cast<int32_t>(ctrl.default_value)));
+	return ControlInfo(values, def.value_or(values.front()));
+}
+
+std::optional<ControlValue>
+V4L2Device::v4l2MenuControlValue(const struct v4l2_query_ext_ctrl &ctrl,
+				 int32_t index)
+{
+	struct v4l2_querymenu menu = {};
+	menu.id = ctrl.id;
+	menu.index = index;
+
+	if (ioctl(VIDIOC_QUERYMENU, &menu) != 0)
+		return std::nullopt;
+
+	if (ctrl.type == V4L2_CTRL_TYPE_INTEGER_MENU)
+		return ControlValue(static_cast<int64_t>(menu.value));
+
+	return ControlValue(index);
+}
+
+std::optional<int32_t>
+V4L2Device::v4l2MenuControlIndex(const struct v4l2_query_ext_ctrl &ctrl,
+				 const ControlValue &value)
+{
+	for (int32_t index = ctrl.minimum; index <= ctrl.maximum; ++index) {
+		std::optional<ControlValue> menuValue =
+			v4l2MenuControlValue(ctrl, index);
+		if (menuValue && *menuValue == value)
+			return index;
+	}
+
+	return std::nullopt;
 }
 
 /*
@@ -827,7 +874,22 @@ void V4L2Device::updateControls(ControlList *ctrls,
 
 		switch (iter->first->type()) {
 		case ControlTypeInteger64:
-			value.set<int64_t>(v4l2Ctrl.value64);
+			if (controlInfo_[id].type == V4L2_CTRL_TYPE_INTEGER_MENU) {
+				std::optional<ControlValue> menuValue =
+					v4l2MenuControlValue(controlInfo_[id],
+							     v4l2Ctrl.value);
+				if (!menuValue) {
+					LOG(V4L2, Error)
+						<< "Control " << utils::hex(id)
+						<< " returned invalid menu index "
+						<< v4l2Ctrl.value;
+					continue;
+				}
+
+				value = *menuValue;
+			} else {
+				value.set<int64_t>(v4l2Ctrl.value64);
+			}
 			break;
 
 		default:
