@@ -1284,19 +1284,21 @@ int V4L2Subdevice::open()
 		return ret;
 	}
 
+	struct v4l2_subdev_client_capability clientCaps{};
+	clientCaps.capabilities = V4L2_SUBDEV_CLIENT_CAP_COMMON_RAW_SENSOR;
+
 	/* If the subdev supports streams, enable the streams API. */
 	if (caps_.hasStreams()) {
-		struct v4l2_subdev_client_capability clientCaps{};
-		clientCaps.capabilities = V4L2_SUBDEV_CLIENT_CAP_STREAMS;
+		clientCaps.capabilities |= V4L2_SUBDEV_CLIENT_CAP_STREAMS;
+	}
 
-		ret = ioctl(VIDIOC_SUBDEV_S_CLIENT_CAP, &clientCaps);
-		if (ret < 0) {
-			ret = -errno;
-			LOG(V4L2, Error)
-				<< "Unable to set client capabilities: "
-				<< strerror(-ret);
-			return ret;
-		}
+	ret = ioctl(VIDIOC_SUBDEV_S_CLIENT_CAP, &clientCaps);
+	if (ret < 0 && errno != ENOTTY) {
+		ret = -errno;
+		LOG(V4L2, Error)
+			<< "Unable to set client capabilities: "
+			<< strerror(-ret);
+		return ret;
 	}
 
 	return 0;
