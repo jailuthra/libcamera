@@ -95,6 +95,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_RGB444_2X8_PADHI_BE,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 16,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRGB,
 	} },
 	{ MEDIA_BUS_FMT_RGB444_2X8_PADHI_LE, {
@@ -102,6 +103,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_RGB444_2X8_PADHI_LE,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 16,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRGB,
 	} },
 	{ MEDIA_BUS_FMT_RGB555_2X8_PADHI_BE, {
@@ -109,6 +111,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_RGB555_2X8_PADHI_BE,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 16,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRGB,
 	} },
 	{ MEDIA_BUS_FMT_RGB555_2X8_PADHI_LE, {
@@ -116,6 +119,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_RGB555_2X8_PADHI_LE,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 16,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRGB,
 	} },
 	{ MEDIA_BUS_FMT_RGB565_1X16, {
@@ -123,6 +127,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_RGB565_1X16,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 16,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRGB,
 	} },
 	{ MEDIA_BUS_FMT_BGR565_2X8_BE, {
@@ -130,6 +135,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_BGR565_2X8_BE,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 16,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRGB,
 	} },
 	{ MEDIA_BUS_FMT_BGR565_2X8_LE, {
@@ -137,6 +143,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_BGR565_2X8_LE,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 16,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRGB,
 	} },
 	{ MEDIA_BUS_FMT_RGB565_2X8_BE, {
@@ -144,6 +151,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_RGB565_2X8_BE,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 16,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRGB,
 	} },
 	{ MEDIA_BUS_FMT_RGB565_2X8_LE, {
@@ -151,6 +159,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_RGB565_2X8_LE,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 16,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRGB,
 	} },
 	{ MEDIA_BUS_FMT_RGB666_1X18, {
@@ -158,6 +167,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_RGB666_1X18,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 18,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRGB,
 	} },
 	{ MEDIA_BUS_FMT_BGR888_1X24, {
@@ -165,6 +175,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_BGR888_1X24,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 24,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRGB,
 	} },
 	{ MEDIA_BUS_FMT_RGB888_1X24, {
@@ -172,6 +183,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_RGB888_1X24,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 24,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRGB,
 	} },
 	{ MEDIA_BUS_FMT_RGB888_2X12_BE, {
@@ -179,6 +191,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_RGB888_2X12_BE,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 24,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRGB,
 	} },
 	{ MEDIA_BUS_FMT_RGB888_2X12_LE, {
@@ -186,6 +199,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_RGB888_2X12_LE,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 24,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRGB,
 	} },
 	{ MEDIA_BUS_FMT_RGB121212_1X36, {
@@ -193,6 +207,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_RGB121212_1X36,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 36,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRGB,
 	} },
 	{ MEDIA_BUS_FMT_RGB202020_1X60, {
@@ -200,6 +215,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_RGB202020_1X60,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 60,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRGB,
 	} },
 	{ MEDIA_BUS_FMT_ARGB8888_1X32, {
@@ -207,6 +223,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_ARGB8888_1X32,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 32,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRGB,
 	} },
 	{ MEDIA_BUS_FMT_Y8_1X8, {
@@ -214,6 +231,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_Y8_1X8,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 8,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingYUV,
 	} },
 	{ MEDIA_BUS_FMT_UV8_1X8, {
@@ -221,6 +239,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_UV8_1X8,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 8,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingYUV,
 	} },
 	{ MEDIA_BUS_FMT_UYVY8_1_5X8, {
@@ -228,6 +247,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_UYVY8_1_5X8,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 12,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingYUV,
 	} },
 	{ MEDIA_BUS_FMT_VYUY8_1_5X8, {
@@ -235,6 +255,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_VYUY8_1_5X8,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 12,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingYUV,
 	} },
 	{ MEDIA_BUS_FMT_YUYV8_1_5X8, {
@@ -242,6 +263,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_YUYV8_1_5X8,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 12,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingYUV,
 	} },
 	{ MEDIA_BUS_FMT_YVYU8_1_5X8, {
@@ -249,6 +271,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_YVYU8_1_5X8,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 12,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingYUV,
 	} },
 	{ MEDIA_BUS_FMT_UYVY8_2X8, {
@@ -256,6 +279,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_UYVY8_2X8,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 16,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingYUV,
 	} },
 	{ MEDIA_BUS_FMT_VYUY8_2X8, {
@@ -263,6 +287,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_VYUY8_2X8,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 16,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingYUV,
 	} },
 	{ MEDIA_BUS_FMT_YUYV8_2X8, {
@@ -270,6 +295,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_YUYV8_2X8,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 16,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingYUV,
 	} },
 	{ MEDIA_BUS_FMT_YVYU8_2X8, {
@@ -277,6 +303,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_YVYU8_2X8,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 16,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingYUV,
 	} },
 	{ MEDIA_BUS_FMT_Y10_1X10, {
@@ -284,6 +311,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_Y10_1X10,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 10,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingYUV,
 	} },
 	{ MEDIA_BUS_FMT_UYVY10_2X10, {
@@ -291,6 +319,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_UYVY10_2X10,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 20,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingYUV,
 	} },
 	{ MEDIA_BUS_FMT_VYUY10_2X10, {
@@ -298,6 +327,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_VYUY10_2X10,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 20,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingYUV,
 	} },
 	{ MEDIA_BUS_FMT_YUYV10_2X10, {
@@ -305,6 +335,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_YUYV10_2X10,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 20,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingYUV,
 	} },
 	{ MEDIA_BUS_FMT_YVYU10_2X10, {
@@ -312,6 +343,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_YVYU10_2X10,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 20,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingYUV,
 	} },
 	{ MEDIA_BUS_FMT_Y12_1X12, {
@@ -319,6 +351,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_Y12_1X12,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 12,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingYUV,
 	} },
 	{ MEDIA_BUS_FMT_Y16_1X16, {
@@ -326,6 +359,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_Y16_1X16,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 16,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingYUV,
 	} },
 	{ MEDIA_BUS_FMT_UYVY8_1X16, {
@@ -333,6 +367,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_UYVY8_1X16,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 16,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingYUV,
 	} },
 	{ MEDIA_BUS_FMT_VYUY8_1X16, {
@@ -340,6 +375,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_VYUY8_1X16,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 16,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingYUV,
 	} },
 	{ MEDIA_BUS_FMT_YUYV8_1X16, {
@@ -347,6 +383,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_YUYV8_1X16,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 16,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingYUV,
 	} },
 	{ MEDIA_BUS_FMT_YVYU8_1X16, {
@@ -354,6 +391,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_YVYU8_1X16,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 16,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingYUV,
 	} },
 	{ MEDIA_BUS_FMT_YDYUYDYV8_1X16, {
@@ -361,6 +399,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_YDYUYDYV8_1X16,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 16,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingYUV,
 	} },
 	{ MEDIA_BUS_FMT_UYVY10_1X20, {
@@ -368,6 +407,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_UYVY10_1X20,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 20,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingYUV,
 	} },
 	{ MEDIA_BUS_FMT_VYUY10_1X20, {
@@ -375,6 +415,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_VYUY10_1X20,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 20,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingYUV,
 	} },
 	{ MEDIA_BUS_FMT_YUYV10_1X20, {
@@ -382,6 +423,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_YUYV10_1X20,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 20,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingYUV,
 	} },
 	{ MEDIA_BUS_FMT_YVYU10_1X20, {
@@ -389,6 +431,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_YVYU10_1X20,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 20,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingYUV,
 	} },
 	{ MEDIA_BUS_FMT_YUV8_1X24, {
@@ -396,6 +439,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_YUV8_1X24,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 24,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingYUV,
 	} },
 	{ MEDIA_BUS_FMT_YUV10_1X30, {
@@ -403,6 +447,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_YUV10_1X30,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 30,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingYUV,
 	} },
 	{ MEDIA_BUS_FMT_AYUV8_1X32, {
@@ -410,6 +455,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_AYUV8_1X32,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 32,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingYUV,
 	} },
 	{ MEDIA_BUS_FMT_UYVY12_2X12, {
@@ -417,6 +463,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_UYVY12_2X12,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 24,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingYUV,
 	} },
 	{ MEDIA_BUS_FMT_VYUY12_2X12, {
@@ -424,6 +471,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_VYUY12_2X12,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 24,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingYUV,
 	} },
 	{ MEDIA_BUS_FMT_YUYV12_2X12, {
@@ -431,6 +479,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_YUYV12_2X12,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 24,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingYUV,
 	} },
 	{ MEDIA_BUS_FMT_YVYU12_2X12, {
@@ -438,6 +487,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_YVYU12_2X12,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 24,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingYUV,
 	} },
 	{ MEDIA_BUS_FMT_UYVY12_1X24, {
@@ -445,6 +495,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_UYVY12_1X24,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 24,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingYUV,
 	} },
 	{ MEDIA_BUS_FMT_VYUY12_1X24, {
@@ -452,6 +503,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_VYUY12_1X24,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 24,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingYUV,
 	} },
 	{ MEDIA_BUS_FMT_YUYV12_1X24, {
@@ -459,6 +511,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_YUYV12_1X24,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 24,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingYUV,
 	} },
 	{ MEDIA_BUS_FMT_YVYU12_1X24, {
@@ -466,6 +519,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_YVYU12_1X24,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 24,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingYUV,
 	} },
 	{ MEDIA_BUS_FMT_SBGGR8_1X8, {
@@ -473,6 +527,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_SBGGR8_1X8,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 8,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRAW,
 	} },
 	{ MEDIA_BUS_FMT_SGBRG8_1X8, {
@@ -480,6 +535,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_SGBRG8_1X8,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 8,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRAW,
 	} },
 	{ MEDIA_BUS_FMT_SGRBG8_1X8, {
@@ -487,6 +543,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_SGRBG8_1X8,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 8,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRAW,
 	} },
 	{ MEDIA_BUS_FMT_SRGGB8_1X8, {
@@ -494,6 +551,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_SRGGB8_1X8,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 8,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRAW,
 	} },
 	{ MEDIA_BUS_FMT_SBGGR10_ALAW8_1X8, {
@@ -501,6 +559,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_SBGGR10_ALAW8_1X8,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 8,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRAW,
 	} },
 	{ MEDIA_BUS_FMT_SGBRG10_ALAW8_1X8, {
@@ -508,6 +567,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_SGBRG10_ALAW8_1X8,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 8,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRAW,
 	} },
 	{ MEDIA_BUS_FMT_SGRBG10_ALAW8_1X8, {
@@ -515,6 +575,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_SGRBG10_ALAW8_1X8,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 8,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRAW,
 	} },
 	{ MEDIA_BUS_FMT_SRGGB10_ALAW8_1X8, {
@@ -522,6 +583,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_SRGGB10_ALAW8_1X8,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 8,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRAW,
 	} },
 	{ MEDIA_BUS_FMT_SBGGR10_DPCM8_1X8, {
@@ -529,6 +591,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_SBGGR10_DPCM8_1X8,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 8,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRAW,
 	} },
 	{ MEDIA_BUS_FMT_SGBRG10_DPCM8_1X8, {
@@ -536,6 +599,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_SGBRG10_DPCM8_1X8,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 8,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRAW,
 	} },
 	{ MEDIA_BUS_FMT_SGRBG10_DPCM8_1X8, {
@@ -543,6 +607,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_SGRBG10_DPCM8_1X8,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 8,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRAW,
 	} },
 	{ MEDIA_BUS_FMT_SRGGB10_DPCM8_1X8, {
@@ -550,6 +615,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_SRGGB10_DPCM8_1X8,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 8,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRAW,
 	} },
 	{ MEDIA_BUS_FMT_SBGGR10_2X8_PADHI_BE, {
@@ -557,6 +623,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_SBGGR10_2X8_PADHI_BE,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 16,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRAW,
 	} },
 	{ MEDIA_BUS_FMT_SBGGR10_2X8_PADHI_LE, {
@@ -564,6 +631,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_SBGGR10_2X8_PADHI_LE,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 16,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRAW,
 	} },
 	{ MEDIA_BUS_FMT_SBGGR10_2X8_PADLO_BE, {
@@ -571,6 +639,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_SBGGR10_2X8_PADLO_BE,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 16,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRAW,
 	} },
 	{ MEDIA_BUS_FMT_SBGGR10_2X8_PADLO_LE, {
@@ -578,6 +647,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_SBGGR10_2X8_PADLO_LE,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 16,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRAW,
 	} },
 	{ MEDIA_BUS_FMT_SBGGR10_1X10, {
@@ -585,6 +655,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_SBGGR10_1X10,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 10,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRAW,
 	} },
 	{ MEDIA_BUS_FMT_SGBRG10_1X10, {
@@ -592,6 +663,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_SGBRG10_1X10,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 10,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRAW,
 	} },
 	{ MEDIA_BUS_FMT_SGRBG10_1X10, {
@@ -599,6 +671,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_SGRBG10_1X10,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 10,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRAW,
 	} },
 	{ MEDIA_BUS_FMT_SRGGB10_1X10, {
@@ -606,6 +679,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_SRGGB10_1X10,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 10,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRAW,
 	} },
 	{ MEDIA_BUS_FMT_SBGGR12_1X12, {
@@ -613,6 +687,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_SBGGR12_1X12,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 12,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRAW,
 	} },
 	{ MEDIA_BUS_FMT_SGBRG12_1X12, {
@@ -620,6 +695,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_SGBRG12_1X12,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 12,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRAW,
 	} },
 	{ MEDIA_BUS_FMT_SGRBG12_1X12, {
@@ -627,6 +703,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_SGRBG12_1X12,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 12,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRAW,
 	} },
 	{ MEDIA_BUS_FMT_SRGGB12_1X12, {
@@ -634,6 +711,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_SRGGB12_1X12,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 12,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRAW,
 	} },
 	{ MEDIA_BUS_FMT_SBGGR14_1X14, {
@@ -641,6 +719,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_SBGGR14_1X14,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 14,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRAW,
 	} },
 	{ MEDIA_BUS_FMT_SGBRG14_1X14, {
@@ -648,6 +727,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_SGBRG14_1X14,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 14,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRAW,
 	} },
 	{ MEDIA_BUS_FMT_SGRBG14_1X14, {
@@ -655,6 +735,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_SGRBG14_1X14,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 14,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRAW,
 	} },
 	{ MEDIA_BUS_FMT_SRGGB14_1X14, {
@@ -662,6 +743,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_SRGGB14_1X14,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 14,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRAW,
 	} },
 	{ MEDIA_BUS_FMT_SBGGR16_1X16, {
@@ -669,6 +751,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_SBGGR16_1X16,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 16,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRAW
 	} },
 	{ MEDIA_BUS_FMT_SGBRG16_1X16, {
@@ -676,6 +759,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_SGBRG16_1X16,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 16,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRAW
 	} },
 	{ MEDIA_BUS_FMT_SGRBG16_1X16, {
@@ -683,6 +767,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_SGRBG16_1X16,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 16,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRAW
 	} },
 	{ MEDIA_BUS_FMT_SRGGB16_1X16, {
@@ -690,6 +775,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_SRGGB16_1X16,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 16,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRAW
 	} },
 	{ MEDIA_BUS_FMT_SBGGR20_1X20, {
@@ -697,6 +783,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_SBGGR20_1X20,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 20,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRAW
 	} },
 	{ MEDIA_BUS_FMT_SGBRG20_1X20, {
@@ -704,6 +791,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_SGBRG20_1X20,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 20,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRAW
 	} },
 	{ MEDIA_BUS_FMT_SGRBG20_1X20, {
@@ -711,6 +799,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_SGRBG20_1X20,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 20,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRAW
 	} },
 	{ MEDIA_BUS_FMT_SRGGB20_1X20, {
@@ -718,6 +807,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_SRGGB20_1X20,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 20,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRAW
 	} },
 	/* \todo Clarify colour encoding for HSV formats */
@@ -726,6 +816,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_AHSV8888_1X32,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 32,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRGB,
 	} },
 	{ MEDIA_BUS_FMT_JPEG_1X8, {
@@ -733,6 +824,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_JPEG_1X8,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 8,
+		.generic = false,
 		.colourEncoding = PixelFormatInfo::ColourEncodingYUV,
 	} },
 	{ MEDIA_BUS_FMT_METADATA_FIXED, {
@@ -740,6 +832,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_METADATA_FIXED,
 		.type = MediaBusFormatInfo::Type::Metadata,
 		.bitsPerPixel = 0,
+		.generic = true,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRAW,
 	} },
 	{ MEDIA_BUS_FMT_META_8, {
@@ -747,6 +840,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_META_8,
 		.type = MediaBusFormatInfo::Type::Metadata,
 		.bitsPerPixel = 8,
+		.generic = true,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRAW,
 	} },
 	{ MEDIA_BUS_FMT_META_10, {
@@ -754,6 +848,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_META_10,
 		.type = MediaBusFormatInfo::Type::Metadata,
 		.bitsPerPixel = 10,
+		.generic = true,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRAW,
 	} },
 	{ MEDIA_BUS_FMT_META_12, {
@@ -761,6 +856,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_META_12,
 		.type = MediaBusFormatInfo::Type::Metadata,
 		.bitsPerPixel = 12,
+		.generic = true,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRAW,
 	} },
 	{ MEDIA_BUS_FMT_META_14, {
@@ -768,6 +864,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_META_14,
 		.type = MediaBusFormatInfo::Type::Metadata,
 		.bitsPerPixel = 14,
+		.generic = true,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRAW,
 	} },
 	{ MEDIA_BUS_FMT_META_16, {
@@ -775,6 +872,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_META_16,
 		.type = MediaBusFormatInfo::Type::Metadata,
 		.bitsPerPixel = 16,
+		.generic = true,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRAW,
 	} },
 	{ MEDIA_BUS_FMT_META_20, {
@@ -782,6 +880,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_META_20,
 		.type = MediaBusFormatInfo::Type::Metadata,
 		.bitsPerPixel = 20,
+		.generic = true,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRAW,
 	} },
 	{ MEDIA_BUS_FMT_META_24, {
@@ -789,6 +888,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_META_24,
 		.type = MediaBusFormatInfo::Type::Metadata,
 		.bitsPerPixel = 24,
+		.generic = true,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRAW,
 	} },
 	{ MEDIA_BUS_FMT_RAW_8, {
@@ -796,6 +896,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_RAW_8,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 8,
+		.generic = true,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRAW,
 	} },
 	{ MEDIA_BUS_FMT_RAW_10, {
@@ -803,6 +904,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_RAW_10,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 10,
+		.generic = true,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRAW,
 	} },
 	{ MEDIA_BUS_FMT_RAW_12, {
@@ -810,6 +912,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_RAW_12,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 12,
+		.generic = true,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRAW,
 	} },
 	{ MEDIA_BUS_FMT_RAW_14, {
@@ -817,6 +920,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_RAW_14,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 14,
+		.generic = true,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRAW,
 	} },
 	{ MEDIA_BUS_FMT_RAW_16, {
@@ -824,6 +928,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_RAW_16,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 16,
+		.generic = true,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRAW,
 	} },
 	{ MEDIA_BUS_FMT_RAW_20, {
@@ -831,6 +936,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_RAW_20,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 20,
+		.generic = true,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRAW,
 	} },
 	{ MEDIA_BUS_FMT_RAW_24, {
@@ -838,6 +944,7 @@ const std::map<uint32_t, MediaBusFormatInfo> mediaBusFormatInfo{
 		.code = MEDIA_BUS_FMT_RAW_24,
 		.type = MediaBusFormatInfo::Type::Image,
 		.bitsPerPixel = 24,
+		.generic = true,
 		.colourEncoding = PixelFormatInfo::ColourEncodingRAW,
 	} },
 };
