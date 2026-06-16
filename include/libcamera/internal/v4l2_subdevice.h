@@ -48,6 +48,7 @@ public:
 	uint32_t code;
 	Type type;
 	unsigned int bitsPerPixel;
+	bool generic;
 	PixelFormatInfo::ColourEncoding colourEncoding;
 };
 
