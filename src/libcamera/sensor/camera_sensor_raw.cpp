@@ -273,7 +273,7 @@ std::optional<int> CameraSensorRaw::init()
 		}
 
 		/* Identify the stream type based on the supported formats. */
-		V4L2Subdevice::Formats formats = subdev_->formats(route.source);
+		V4L2Subdevice::Formats formats = subdev_->formats(route.sink);
 
 		std::optional<MediaBusFormatInfo::Type> type;
 
@@ -288,7 +288,7 @@ std::optional<int> CameraSensorRaw::init()
 
 		if (!type) {
 			LOG(CameraSensor, Warning)
-				<< "No known format on pad " << route.source;
+				<< "No known format on pad " << route.sink;
 			continue;
 		}
 
