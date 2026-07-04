@@ -957,7 +957,10 @@ void SimpleCameraData::imageBufferReady(FrameBuffer *buffer)
 
 		if (converter_)
 			converter_->queueBuffers(buffer, conversionQueue_.front().outputs);
-		else
+		else {
+			if (!frameStartEmitter_)
+				delayedCtrls_->applyControls(request->sequence());
+
 			/*
 			 * request->sequence() cannot be retrieved from `buffer' inside
 			 * queueBuffers because unique_ptr's make buffer->request() invalid
@@ -965,6 +968,7 @@ void SimpleCameraData::imageBufferReady(FrameBuffer *buffer)
 			 */
 			swIsp_->queueBuffers(request->sequence(), buffer,
 					     conversionQueue_.front().outputs);
+		}
 
 		conversionQueue_.pop();
 		return;
