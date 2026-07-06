@@ -651,6 +651,7 @@ int CameraSensorRaw::initProperties()
 		cfa = properties::draft::RGGB;
 		break;
 	case BayerFormat::MONO:
+	case BayerFormat::GENERIC:
 	default:
 		cfa = properties::draft::MONO;
 		break;

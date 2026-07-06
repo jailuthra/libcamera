@@ -640,6 +640,7 @@ int CameraSensorLegacy::initProperties()
 			cfa = properties::draft::RGGB;
 			break;
 		case BayerFormat::MONO:
+		case BayerFormat::GENERIC:
 			cfa = properties::draft::MONO;
 			break;
 		}

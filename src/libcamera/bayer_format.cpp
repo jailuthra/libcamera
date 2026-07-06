@@ -104,6 +104,8 @@ const std::map<BayerFormat, Formats, BayerFormatComparator> bayerToFormat{
 		{ formats::SGRBG8, V4L2PixelFormat(V4L2_PIX_FMT_SGRBG8) } },
 	{ { BayerFormat::RGGB, 8, BayerFormat::Packing::None },
 		{ formats::SRGGB8, V4L2PixelFormat(V4L2_PIX_FMT_SRGGB8) } },
+	{ { BayerFormat::GENERIC, 8, BayerFormat::Packing::None },
+		{ formats::SRGGB8, V4L2PixelFormat(V4L2_PIX_FMT_SRGGB8) } },
 	{ { BayerFormat::BGGR, 10, BayerFormat::Packing::None },
 		{ formats::SBGGR10, V4L2PixelFormat(V4L2_PIX_FMT_SBGGR10) } },
 	{ { BayerFormat::GBRG, 10, BayerFormat::Packing::None },
@@ -197,6 +199,7 @@ const std::unordered_map<unsigned int, BayerFormat> mbusCodeToBayer{
 	{ MEDIA_BUS_FMT_SGBRG8_1X8, { BayerFormat::GBRG, 8, BayerFormat::Packing::None } },
 	{ MEDIA_BUS_FMT_SGRBG8_1X8, { BayerFormat::GRBG, 8, BayerFormat::Packing::None } },
 	{ MEDIA_BUS_FMT_SRGGB8_1X8, { BayerFormat::RGGB, 8, BayerFormat::Packing::None } },
+	{ MEDIA_BUS_FMT_RAW_8, { BayerFormat::GENERIC, 8, BayerFormat::Packing::None } },
 	{ MEDIA_BUS_FMT_SBGGR10_ALAW8_1X8, { BayerFormat::BGGR, 8, BayerFormat::Packing::None } },
 	{ MEDIA_BUS_FMT_SGBRG10_ALAW8_1X8, { BayerFormat::GBRG, 8, BayerFormat::Packing::None } },
 	{ MEDIA_BUS_FMT_SGRBG10_ALAW8_1X8, { BayerFormat::GRBG, 8, BayerFormat::Packing::None } },
@@ -209,6 +212,7 @@ const std::unordered_map<unsigned int, BayerFormat> mbusCodeToBayer{
 	{ MEDIA_BUS_FMT_SBGGR10_2X8_PADHI_LE, { BayerFormat::BGGR, 10, BayerFormat::Packing::None } },
 	{ MEDIA_BUS_FMT_SBGGR10_2X8_PADLO_BE, { BayerFormat::BGGR, 10, BayerFormat::Packing::None } },
 	{ MEDIA_BUS_FMT_SBGGR10_2X8_PADLO_LE, { BayerFormat::BGGR, 10, BayerFormat::Packing::None } },
+	{ MEDIA_BUS_FMT_RAW_10, { BayerFormat::GENERIC, 10, BayerFormat::Packing::None } },
 	{ MEDIA_BUS_FMT_SBGGR10_1X10, { BayerFormat::BGGR, 10, BayerFormat::Packing::None } },
 	{ MEDIA_BUS_FMT_SGBRG10_1X10, { BayerFormat::GBRG, 10, BayerFormat::Packing::None } },
 	{ MEDIA_BUS_FMT_SGRBG10_1X10, { BayerFormat::GRBG, 10, BayerFormat::Packing::None } },
@@ -217,18 +221,22 @@ const std::unordered_map<unsigned int, BayerFormat> mbusCodeToBayer{
 	{ MEDIA_BUS_FMT_SGBRG12_1X12, { BayerFormat::GBRG, 12, BayerFormat::Packing::None } },
 	{ MEDIA_BUS_FMT_SGRBG12_1X12, { BayerFormat::GRBG, 12, BayerFormat::Packing::None } },
 	{ MEDIA_BUS_FMT_SRGGB12_1X12, { BayerFormat::RGGB, 12, BayerFormat::Packing::None } },
+	{ MEDIA_BUS_FMT_RAW_12, { BayerFormat::GENERIC, 12, BayerFormat::Packing::None } },
 	{ MEDIA_BUS_FMT_SBGGR14_1X14, { BayerFormat::BGGR, 14, BayerFormat::Packing::None } },
 	{ MEDIA_BUS_FMT_SGBRG14_1X14, { BayerFormat::GBRG, 14, BayerFormat::Packing::None } },
 	{ MEDIA_BUS_FMT_SGRBG14_1X14, { BayerFormat::GRBG, 14, BayerFormat::Packing::None } },
 	{ MEDIA_BUS_FMT_SRGGB14_1X14, { BayerFormat::RGGB, 14, BayerFormat::Packing::None } },
+	{ MEDIA_BUS_FMT_RAW_14, { BayerFormat::GENERIC, 14, BayerFormat::Packing::None } },
 	{ MEDIA_BUS_FMT_SBGGR16_1X16, { BayerFormat::BGGR, 16, BayerFormat::Packing::None } },
 	{ MEDIA_BUS_FMT_SGBRG16_1X16, { BayerFormat::GBRG, 16, BayerFormat::Packing::None } },
 	{ MEDIA_BUS_FMT_SGRBG16_1X16, { BayerFormat::GRBG, 16, BayerFormat::Packing::None } },
 	{ MEDIA_BUS_FMT_SRGGB16_1X16, { BayerFormat::RGGB, 16, BayerFormat::Packing::None } },
+	{ MEDIA_BUS_FMT_RAW_16, { BayerFormat::GENERIC, 16, BayerFormat::Packing::None } },
 	{ MEDIA_BUS_FMT_SBGGR20_1X20, { BayerFormat::BGGR, 20, BayerFormat::Packing::None } },
 	{ MEDIA_BUS_FMT_SGBRG20_1X20, { BayerFormat::GBRG, 20, BayerFormat::Packing::None } },
 	{ MEDIA_BUS_FMT_SGRBG20_1X20, { BayerFormat::GRBG, 20, BayerFormat::Packing::None } },
 	{ MEDIA_BUS_FMT_SRGGB20_1X20, { BayerFormat::RGGB, 20, BayerFormat::Packing::None } },
+	{ MEDIA_BUS_FMT_RAW_20, { BayerFormat::GENERIC, 20, BayerFormat::Packing::None } },
 	{ MEDIA_BUS_FMT_Y8_1X8, { BayerFormat::MONO, 8, BayerFormat::Packing::None } },
 	{ MEDIA_BUS_FMT_Y10_1X10, { BayerFormat::MONO, 10, BayerFormat::Packing::None } },
 	{ MEDIA_BUS_FMT_Y12_1X12, { BayerFormat::MONO, 12, BayerFormat::Packing::None } },
@@ -308,10 +316,11 @@ std::ostream &operator<<(std::ostream &out, const BayerFormat &f)
 		"GBRG-",
 		"GRBG-",
 		"RGGB-",
-		"MONO-"
+		"MONO-",
+		"GENERIC-"
 	};
 
-	if (!f.isValid() || f.order > BayerFormat::MONO) {
+	if (!f.isValid() || f.order > BayerFormat::GENERIC) {
 		out << "INVALID";
 		return out;
 	}
@@ -418,7 +427,7 @@ BayerFormat BayerFormat::transform(Transform t) const
 {
 	BayerFormat result = *this;
 
-	if (order == MONO)
+	if (order == MONO || order == GENERIC)
 		return result;
 
 	/*
