@@ -209,7 +209,7 @@ std::pair<uint32_t, uint32_t> CamHelperImx708::getBlanking(Duration &exposure,
 
 bool CamHelperImx708::sensorEmbeddedDataPresent() const
 {
-	return true;
+	return false;
 }
 
 double CamHelperImx708::getModeSensitivity(const CameraMode &mode) const
