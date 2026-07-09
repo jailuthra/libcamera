@@ -238,6 +238,20 @@ std::optional<int> CameraSensorRaw::init()
 	if (ret)
 		return { ret };
 
+	ControlList configModel = subdev_->getControls({ { V4L2_CID_CONFIG_MODEL } });
+	if (configModel.empty()) {
+		LOG(CameraSensor, Debug)
+			<< "V4L2_CID_CONFIG_MODEL not available";
+		return { 0 };
+	}
+
+	int32_t model = configModel.get(V4L2_CID_CONFIG_MODEL).get<int32_t>();
+	if (!(model & V4L2_CONFIG_MODEL_COMMON_RAW_SENSOR)) {
+		LOG(CameraSensor, Debug)
+			<< "Common raw sensor model not supported";
+		return { 0 };
+	}
+
 	/*
 	 * 1. Identify the pads.
 	 */
