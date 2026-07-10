@@ -53,6 +53,7 @@ public:
 	bool isValid() const { return bitDepth != 0; }
 
 	std::string toString() const;
+	unsigned int toGenericMbusCode() const;
 
 	V4L2PixelFormat toV4L2PixelFormat() const;
 	static BayerFormat fromV4L2PixelFormat(V4L2PixelFormat v4l2Format);

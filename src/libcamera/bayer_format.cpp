@@ -237,6 +237,8 @@ const std::unordered_map<unsigned int, BayerFormat> mbusCodeToBayer{
 	{ MEDIA_BUS_FMT_SGRBG20_1X20, { BayerFormat::GRBG, 20, BayerFormat::Packing::None } },
 	{ MEDIA_BUS_FMT_SRGGB20_1X20, { BayerFormat::RGGB, 20, BayerFormat::Packing::None } },
 	{ MEDIA_BUS_FMT_RAW_20, { BayerFormat::GENERIC, 20, BayerFormat::Packing::None } },
+	{ MEDIA_BUS_FMT_RAW_24, { BayerFormat::GENERIC, 24, BayerFormat::Packing::None } },
+	{ MEDIA_BUS_FMT_RAW_28, { BayerFormat::GENERIC, 28, BayerFormat::Packing::None } },
 	{ MEDIA_BUS_FMT_Y8_1X8, { BayerFormat::MONO, 8, BayerFormat::Packing::None } },
 	{ MEDIA_BUS_FMT_Y10_1X10, { BayerFormat::MONO, 10, BayerFormat::Packing::None } },
 	{ MEDIA_BUS_FMT_Y12_1X12, { BayerFormat::MONO, 12, BayerFormat::Packing::None } },
@@ -291,6 +293,38 @@ std::string BayerFormat::toString() const
 	ss << *this;
 
 	return ss.str();
+}
+
+/**
+ * \brief Convert a generic BayerFormat to the corresponding media bus code
+ * \return The generic media bus code corresponding to this BayerFormat, or 0
+ * if no corresponding generic media bus code exists
+ */
+unsigned int BayerFormat::toGenericMbusCode() const
+{
+	if (order != GENERIC || packing != Packing::None)
+		return 0;
+
+	switch (bitDepth) {
+	case 8:
+		return MEDIA_BUS_FMT_RAW_8;
+	case 10:
+		return MEDIA_BUS_FMT_RAW_10;
+	case 12:
+		return MEDIA_BUS_FMT_RAW_12;
+	case 14:
+		return MEDIA_BUS_FMT_RAW_14;
+	case 16:
+		return MEDIA_BUS_FMT_RAW_16;
+	case 20:
+		return MEDIA_BUS_FMT_RAW_20;
+	case 24:
+		return MEDIA_BUS_FMT_RAW_24;
+	case 28:
+		return MEDIA_BUS_FMT_RAW_28;
+	default:
+		return 0;
+	}
 }
 
 /**
