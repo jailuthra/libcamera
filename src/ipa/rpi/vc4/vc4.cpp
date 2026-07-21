@@ -5,6 +5,7 @@
  * Raspberry Pi VC4/BCM2835 ISP IPA.
  */
 
+#include <optional>
 #include <string.h>
 #include <sys/mman.h>
 
@@ -30,6 +31,7 @@
 #include "controller/lux_status.h"
 #include "controller/noise_status.h"
 #include "controller/sharpen_status.h"
+#include "params.h"
 
 namespace libcamera {
 
@@ -59,33 +61,37 @@ private:
 	int32_t platformStart(const ControlList &controls, StartResult *result) override;
 	int32_t platformConfigure(const ConfigParams &params, ConfigResult *result) override;
 
+	void platformParamsBufferInit(Span<uint8_t> paramsBuffer) override;
 	void platformPrepareIsp(RPiController::Metadata &rpiMetadata) override;
 	void platformPrepareAgc([[maybe_unused]] RPiController::Metadata &rpiMetadata) override;
 	RPiController::StatisticsPtr platformProcessStats(Span<uint8_t> mem) override;
 
 	void handleControls(const ControlList &controls) override;
-	bool validateIspControls();
 
-	void applyAWB(const struct AwbStatus *awbStatus, ControlList &ctrls);
-	void applyDG(double digitalGain, const struct AwbStatus *awbStatus, ControlList &ctrls);
-	void applyCCM(const struct CcmStatus *ccmStatus, ControlList &ctrls);
-	void applyBlackLevel(const struct BlackLevelStatus *blackLevelStatus, ControlList &ctrls);
-	void applyGamma(const struct ContrastStatus *contrastStatus, ControlList &ctrls);
-	void applyGEQ(const struct GeqStatus *geqStatus, ControlList &ctrls);
-	void applyDenoise(const struct DenoiseStatus *denoiseStatus, ControlList &ctrls);
-	void applySharpen(const struct SharpenStatus *sharpenStatus, ControlList &ctrls);
-	void applyDPC(const struct DpcStatus *dpcStatus, ControlList &ctrls);
-	void applyLS(const struct AlscStatus *lsStatus, ControlList &ctrls);
+	void applyAWB(const struct AwbStatus *awbStatus, Bcm2835Params &params);
+	void applyDG(double digitalGain, const struct AwbStatus *awbStatus, Bcm2835Params &params);
+	void applyCCM(const struct CcmStatus *ccmStatus, Bcm2835Params &params);
+	void applyBlackLevel(const struct BlackLevelStatus *blackLevelStatus, Bcm2835Params &params);
+	void applyGamma(const struct ContrastStatus *contrastStatus, Bcm2835Params &params);
+	void applyGEQ(const struct GeqStatus *geqStatus, Bcm2835Params &params);
+	void applyDenoise(const struct DenoiseStatus *denoiseStatus, Bcm2835Params &params);
+	void applySharpen(const struct SharpenStatus *sharpenStatus, Bcm2835Params &params);
+	void applyDPC(const struct DpcStatus *dpcStatus, Bcm2835Params &params);
+	void applyLS(const struct AlscStatus *lsStatus, Bcm2835Params &params);
 	void applyAF(const struct AfStatus *afStatus, ControlList &lensCtrls);
 	void resampleTable(uint16_t dest[], const std::vector<double> &src, int destW, int destH);
 
-	/* VC4 ISP controls. */
-	ControlInfoMap ispCtrls_;
-	ControlList ctrls_;
+	size_t platformParamsBytesUsed() const override
+	{
+		return (ispParams_.has_value()) ? ispParams_->bytesused() : 0;
+	}
 
 	/* LS table allocation passed in from the pipeline handler. */
 	SharedFD lsTableHandle_;
 	void *lsTable_;
+
+	/* Params buffer for the current frame. */
+	std::optional<Bcm2835Params> ispParams_;
 
 	/* Remember the most recent AWB values. */
 	AwbStatus lastAwbStatus_;
@@ -113,13 +119,6 @@ int32_t IpaVc4::platformStart([[maybe_unused]] const ControlList &controls,
 
 int32_t IpaVc4::platformConfigure(const ConfigParams &params, [[maybe_unused]] ConfigResult *result)
 {
-	ispCtrls_ = params.ispControls;
-	ctrls_ = ControlList(ispCtrls_);
-	if (!validateIspControls()) {
-		LOG(IPARPI, Error) << "ISP control validation failed.";
-		return -1;
-	}
-
 	/* Store the lens shading table pointer and handle if available. */
 	if (params.lsTableHandle.isValid()) {
 		/* Remove any previous table, if there was one. */
@@ -144,50 +143,54 @@ int32_t IpaVc4::platformConfigure(const ConfigParams &params, [[maybe_unused]] C
 	return 0;
 }
 
+void IpaVc4::platformParamsBufferInit(Span<uint8_t> paramsBuffer)
+{
+	/* Initialize the extensible parameter buffer */
+	ispParams_.emplace(paramsBuffer);
+}
+
 void IpaVc4::platformPrepareIsp(RPiController::Metadata &rpiMetadata)
 {
-	ControlList &ctrls = ctrls_;
-
 	/* Lock the metadata buffer to avoid constant locks/unlocks. */
 	std::unique_lock<RPiController::Metadata> lock(rpiMetadata);
 
 	AwbStatus *awbStatus = rpiMetadata.getLocked<AwbStatus>("awb.status");
 	if (awbStatus) {
-		applyAWB(awbStatus, ctrls);
+		applyAWB(awbStatus, *ispParams_);
 		lastAwbStatus_ = *awbStatus;
 	}
 
 	CcmStatus *ccmStatus = rpiMetadata.getLocked<CcmStatus>("ccm.status");
 	if (ccmStatus)
-		applyCCM(ccmStatus, ctrls);
+		applyCCM(ccmStatus, *ispParams_);
 
 	AlscStatus *lsStatus = rpiMetadata.getLocked<AlscStatus>("alsc.status");
 	if (lsStatus)
-		applyLS(lsStatus, ctrls);
+		applyLS(lsStatus, *ispParams_);
 
 	ContrastStatus *contrastStatus = rpiMetadata.getLocked<ContrastStatus>("contrast.status");
 	if (contrastStatus)
-		applyGamma(contrastStatus, ctrls);
+		applyGamma(contrastStatus, *ispParams_);
 
 	BlackLevelStatus *blackLevelStatus = rpiMetadata.getLocked<BlackLevelStatus>("black_level.status");
 	if (blackLevelStatus)
-		applyBlackLevel(blackLevelStatus, ctrls);
+		applyBlackLevel(blackLevelStatus, *ispParams_);
 
 	GeqStatus *geqStatus = rpiMetadata.getLocked<GeqStatus>("geq.status");
 	if (geqStatus)
-		applyGEQ(geqStatus, ctrls);
+		applyGEQ(geqStatus, *ispParams_);
 
 	DenoiseStatus *denoiseStatus = rpiMetadata.getLocked<DenoiseStatus>("denoise.status");
 	if (denoiseStatus)
-		applyDenoise(denoiseStatus, ctrls);
+		applyDenoise(denoiseStatus, *ispParams_);
 
 	SharpenStatus *sharpenStatus = rpiMetadata.getLocked<SharpenStatus>("sharpen.status");
 	if (sharpenStatus)
-		applySharpen(sharpenStatus, ctrls);
+		applySharpen(sharpenStatus, *ispParams_);
 
 	DpcStatus *dpcStatus = rpiMetadata.getLocked<DpcStatus>("dpc.status");
 	if (dpcStatus)
-		applyDPC(dpcStatus, ctrls);
+		applyDPC(dpcStatus, *ispParams_);
 
 	const AfStatus *afStatus = rpiMetadata.getLocked<AfStatus>("af.status");
 	if (afStatus) {
@@ -204,10 +207,7 @@ void IpaVc4::platformPrepareAgc(RPiController::Metadata &rpiMetadata)
 	double digitalGain = delayedAgcStatus ? delayedAgcStatus->digitalGain : agcStatus_.digitalGain;
 	AwbStatus *awbStatus = rpiMetadata.getLocked<AwbStatus>("awb.status");
 
-	applyDG(digitalGain, awbStatus, ctrls_);
-
-	setIspControls.emit(ctrls_);
-	ctrls_ = ControlList(ispCtrls_);
+	applyDG(digitalGain, awbStatus, *ispParams_);
 }
 
 RPiController::StatisticsPtr IpaVc4::platformProcessStats(Span<uint8_t> mem)
@@ -324,48 +324,26 @@ void IpaVc4::handleControls(const ControlList &controls)
 	}
 }
 
-bool IpaVc4::validateIspControls()
+void IpaVc4::applyAWB(const struct AwbStatus *awbStatus, Bcm2835Params &params)
 {
-	static const uint32_t ctrls[] = {
-		V4L2_CID_RED_BALANCE,
-		V4L2_CID_BLUE_BALANCE,
-		V4L2_CID_DIGITAL_GAIN,
-		V4L2_CID_USER_BCM2835_ISP_CC_MATRIX,
-		V4L2_CID_USER_BCM2835_ISP_GAMMA,
-		V4L2_CID_USER_BCM2835_ISP_BLACK_LEVEL,
-		V4L2_CID_USER_BCM2835_ISP_GEQ,
-		V4L2_CID_USER_BCM2835_ISP_DENOISE,
-		V4L2_CID_USER_BCM2835_ISP_SHARPEN,
-		V4L2_CID_USER_BCM2835_ISP_DPC,
-		V4L2_CID_USER_BCM2835_ISP_LENS_SHADING,
-		V4L2_CID_USER_BCM2835_ISP_CDN,
-	};
+	auto block = params.block<BlockType::AwbGains>();
 
-	for (auto c : ctrls) {
-		if (ispCtrls_.find(c) == ispCtrls_.end()) {
-			LOG(IPARPI, Error) << "Unable to find ISP control "
-					   << utils::hex(c);
-			return false;
-		}
-	}
-
-	return true;
-}
-
-void IpaVc4::applyAWB(const struct AwbStatus *awbStatus, ControlList &ctrls)
-{
 	LOG(IPARPI, Debug) << "Applying WB R: " << awbStatus->gainR << " B: "
 			   << awbStatus->gainB;
 
-	ctrls.set(V4L2_CID_RED_BALANCE,
-		  static_cast<int32_t>(awbStatus->gainR * 1000));
-	ctrls.set(V4L2_CID_BLUE_BALANCE,
-		  static_cast<int32_t>(awbStatus->gainB * 1000));
+	block->awb_gains.r_gain.num = static_cast<int32_t>(awbStatus->gainR * 1000);
+	block->awb_gains.r_gain.den = 1000;
+	block->awb_gains.b_gain.num = static_cast<int32_t>(awbStatus->gainB * 1000);
+	block->awb_gains.b_gain.den = 1000;
+
+	block.setEnabled(true);
 }
 
 void IpaVc4::applyDG(double digitalGain,
-		     const struct AwbStatus *awbStatus, ControlList &ctrls)
+		     const struct AwbStatus *awbStatus, Bcm2835Params &params)
 {
+	auto block = params.block<BlockType::DGain>();
+
 	if (awbStatus) {
 		/*
 		 * We must apply sufficient extra digital gain to stop any of the channel gains being
@@ -379,13 +357,16 @@ void IpaVc4::applyDG(double digitalGain,
 		digitalGain *= extraGain;
 	}
 
-	ctrls.set(V4L2_CID_DIGITAL_GAIN,
-		  static_cast<int32_t>(digitalGain * 1000));
+	block->digital_gain.gain.num = static_cast<int32_t>(digitalGain * 1000);
+	block->digital_gain.gain.den = 1000;
+
+	block.setEnabled(true);
 }
 
-void IpaVc4::applyCCM(const struct CcmStatus *ccmStatus, ControlList &ctrls)
+void IpaVc4::applyCCM(const struct CcmStatus *ccmStatus, Bcm2835Params &params)
 {
-	bcm2835_isp_custom_ccm ccm;
+	auto block = params.block<BlockType::CcMatrix>();
+	bcm2835_isp_custom_ccm &ccm = block->ccm;
 
 	for (int i = 0; i < 9; i++) {
 		ccm.ccm.ccm[i / 3][i % 3].den = 1000;
@@ -394,30 +375,28 @@ void IpaVc4::applyCCM(const struct CcmStatus *ccmStatus, ControlList &ctrls)
 
 	ccm.enabled = 1;
 	ccm.ccm.offsets[0] = ccm.ccm.offsets[1] = ccm.ccm.offsets[2] = 0;
-
-	ControlValue c(Span<const uint8_t>{ reinterpret_cast<uint8_t *>(&ccm),
-					    sizeof(ccm) });
-	ctrls.set(V4L2_CID_USER_BCM2835_ISP_CC_MATRIX, c);
+	block.setEnabled(true);
 }
 
-void IpaVc4::applyBlackLevel(const struct BlackLevelStatus *blackLevelStatus, ControlList &ctrls)
+void IpaVc4::applyBlackLevel(const struct BlackLevelStatus *blackLevelStatus,
+			     Bcm2835Params &params)
 {
-	bcm2835_isp_black_level blackLevel;
+	auto block = params.block<BlockType::BlackLevel>();
+	bcm2835_isp_black_level &blackLevel = block->black_level;
 
 	blackLevel.enabled = 1;
 	blackLevel.black_level_r = blackLevelStatus->blackLevelR;
 	blackLevel.black_level_g = blackLevelStatus->blackLevelG;
 	blackLevel.black_level_b = blackLevelStatus->blackLevelB;
-
-	ControlValue c(Span<const uint8_t>{ reinterpret_cast<uint8_t *>(&blackLevel),
-					    sizeof(blackLevel) });
-	ctrls.set(V4L2_CID_USER_BCM2835_ISP_BLACK_LEVEL, c);
+	block.setEnabled(true);
 }
 
-void IpaVc4::applyGamma(const struct ContrastStatus *contrastStatus, ControlList &ctrls)
+void IpaVc4::applyGamma(const struct ContrastStatus *contrastStatus,
+			Bcm2835Params &params)
 {
 	const unsigned int numGammaPoints = controller_.getHardwareConfig().numGammaPoints;
-	struct bcm2835_isp_gamma gamma;
+	auto block = params.block<BlockType::Gamma>();
+	struct bcm2835_isp_gamma &gamma = block->gamma;
 
 	for (unsigned int i = 0; i < numGammaPoints - 1; i++) {
 		int x = i < 16 ? i * 1024
@@ -430,31 +409,27 @@ void IpaVc4::applyGamma(const struct ContrastStatus *contrastStatus, ControlList
 	gamma.x[numGammaPoints - 1] = 65535;
 	gamma.y[numGammaPoints - 1] = 65535;
 	gamma.enabled = 1;
-
-	ControlValue c(Span<const uint8_t>{ reinterpret_cast<uint8_t *>(&gamma),
-					    sizeof(gamma) });
-	ctrls.set(V4L2_CID_USER_BCM2835_ISP_GAMMA, c);
+	block.setEnabled(true);
 }
 
-void IpaVc4::applyGEQ(const struct GeqStatus *geqStatus, ControlList &ctrls)
+void IpaVc4::applyGEQ(const struct GeqStatus *geqStatus, Bcm2835Params &params)
 {
-	bcm2835_isp_geq geq;
+	auto block = params.block<BlockType::Geq>();
+	bcm2835_isp_geq &geq = block->geq;
 
 	geq.enabled = 1;
 	geq.offset = geqStatus->offset;
 	geq.slope.den = 1000;
 	geq.slope.num = 1000 * geqStatus->slope;
-
-	ControlValue c(Span<const uint8_t>{ reinterpret_cast<uint8_t *>(&geq),
-					    sizeof(geq) });
-	ctrls.set(V4L2_CID_USER_BCM2835_ISP_GEQ, c);
+	block.setEnabled(true);
 }
 
-void IpaVc4::applyDenoise(const struct DenoiseStatus *denoiseStatus, ControlList &ctrls)
+void IpaVc4::applyDenoise(const struct DenoiseStatus *denoiseStatus, Bcm2835Params &params)
 {
+	auto blockDenoise = params.block<BlockType::Denoise>();
 	using RPiController::DenoiseMode;
 
-	bcm2835_isp_denoise denoise;
+	bcm2835_isp_denoise &denoise = blockDenoise->denoise;
 	DenoiseMode mode = static_cast<DenoiseMode>(denoiseStatus->mode);
 
 	denoise.enabled = mode != DenoiseMode::Off;
@@ -463,9 +438,11 @@ void IpaVc4::applyDenoise(const struct DenoiseStatus *denoiseStatus, ControlList
 	denoise.slope.den = 1000;
 	denoise.strength.num = 1000 * denoiseStatus->strength;
 	denoise.strength.den = 1000;
+	blockDenoise.setEnabled(denoise.enabled);
 
 	/* Set the CDN mode to match the SDN operating mode. */
-	bcm2835_isp_cdn cdn;
+	auto blockCdn = params.block<BlockType::Cdn>();
+	bcm2835_isp_cdn &cdn = blockCdn->cdn;
 	switch (mode) {
 	case DenoiseMode::ColourFast:
 		cdn.enabled = 1;
@@ -478,19 +455,13 @@ void IpaVc4::applyDenoise(const struct DenoiseStatus *denoiseStatus, ControlList
 	default:
 		cdn.enabled = 0;
 	}
-
-	ControlValue c(Span<const uint8_t>{ reinterpret_cast<uint8_t *>(&denoise),
-					    sizeof(denoise) });
-	ctrls.set(V4L2_CID_USER_BCM2835_ISP_DENOISE, c);
-
-	c = ControlValue(Span<const uint8_t>{ reinterpret_cast<uint8_t *>(&cdn),
-					      sizeof(cdn) });
-	ctrls.set(V4L2_CID_USER_BCM2835_ISP_CDN, c);
+	blockCdn.setEnabled(cdn.enabled);
 }
 
-void IpaVc4::applySharpen(const struct SharpenStatus *sharpenStatus, ControlList &ctrls)
+void IpaVc4::applySharpen(const struct SharpenStatus *sharpenStatus, Bcm2835Params &params)
 {
-	bcm2835_isp_sharpen sharpen;
+	auto block = params.block<BlockType::Sharpen>();
+	bcm2835_isp_sharpen &sharpen = block->sharpen;
 
 	sharpen.enabled = 1;
 	sharpen.threshold.num = 1000 * sharpenStatus->threshold;
@@ -499,25 +470,20 @@ void IpaVc4::applySharpen(const struct SharpenStatus *sharpenStatus, ControlList
 	sharpen.strength.den = 1000;
 	sharpen.limit.num = 1000 * sharpenStatus->limit;
 	sharpen.limit.den = 1000;
-
-	ControlValue c(Span<const uint8_t>{ reinterpret_cast<uint8_t *>(&sharpen),
-					    sizeof(sharpen) });
-	ctrls.set(V4L2_CID_USER_BCM2835_ISP_SHARPEN, c);
+	block.setEnabled(true);
 }
 
-void IpaVc4::applyDPC(const struct DpcStatus *dpcStatus, ControlList &ctrls)
+void IpaVc4::applyDPC(const struct DpcStatus *dpcStatus, Bcm2835Params &params)
 {
-	bcm2835_isp_dpc dpc;
+	auto block = params.block<BlockType::Dpc>();
+	bcm2835_isp_dpc &dpc = block->dpc;
 
 	dpc.enabled = 1;
 	dpc.strength = dpcStatus->strength;
-
-	ControlValue c(Span<const uint8_t>{ reinterpret_cast<uint8_t *>(&dpc),
-					    sizeof(dpc) });
-	ctrls.set(V4L2_CID_USER_BCM2835_ISP_DPC, c);
+	block.setEnabled(true);
 }
 
-void IpaVc4::applyLS(const struct AlscStatus *lsStatus, ControlList &ctrls)
+void IpaVc4::applyLS(const struct AlscStatus *lsStatus, Bcm2835Params &params)
 {
 	/*
 	 * Program lens shading tables into pipeline.
@@ -541,7 +507,14 @@ void IpaVc4::applyLS(const struct AlscStatus *lsStatus, ControlList &ctrls)
 
 	/* We're going to supply corner sampled tables, 16 bit samples. */
 	w++, h++;
-	bcm2835_isp_lens_shading ls = {
+
+	if (!lsTableHandle_.isValid() || !lsTable_ || w * h * 4 * sizeof(uint16_t) > MaxLsGridSize) {
+		LOG(IPARPI, Error) << "Do not have a correctly allocated lens shading table!";
+		return;
+	}
+
+	auto block = params.block<BlockType::LensShading>();
+	block->ls = {
 		.enabled = 1,
 		.grid_cell_size = cellSize,
 		.grid_width = w,
@@ -554,11 +527,6 @@ void IpaVc4::applyLS(const struct AlscStatus *lsStatus, ControlList &ctrls)
 		.gain_format = GAIN_FORMAT_U4P10
 	};
 
-	if (!lsTable_ || w * h * 4 * sizeof(uint16_t) > MaxLsGridSize) {
-		LOG(IPARPI, Error) << "Do not have a correctly allocate lens shading table!";
-		return;
-	}
-
 	if (lsStatus) {
 		/* Format will be u4.10 */
 		uint16_t *grid = static_cast<uint16_t *>(lsTable_);
@@ -569,9 +537,7 @@ void IpaVc4::applyLS(const struct AlscStatus *lsStatus, ControlList &ctrls)
 		resampleTable(grid + 3 * w * h, lsStatus->b, w, h);
 	}
 
-	ControlValue c(Span<const uint8_t>{ reinterpret_cast<uint8_t *>(&ls),
-					    sizeof(ls) });
-	ctrls.set(V4L2_CID_USER_BCM2835_ISP_LENS_SHADING, c);
+	block.setEnabled(true);
 }
 
 void IpaVc4::applyAF(const struct AfStatus *afStatus, ControlList &lensCtrls)
