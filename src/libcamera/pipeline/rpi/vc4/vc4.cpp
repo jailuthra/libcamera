@@ -86,7 +86,6 @@ public:
 	void processStatsComplete(const ipa::RPi::BufferIds &buffers);
 	void prepareIspComplete(const ipa::RPi::BufferIds &buffers, bool stitchSwapBuffers,
 				unsigned int paramsBytesUsed);
-	void setIspControls(const ControlList &controls);
 	void setCameraTimeout(uint32_t maxFrameLengthMs);
 
 	std::unique_ptr<V4L2Subdevice> unicamSubdev_;
@@ -141,6 +140,8 @@ private:
 
 	void tryRunPipeline() override;
 	bool findMatchingBuffers(BayerFrame &bayerFrame, FrameBuffer *&embeddedBuffer);
+
+	void populateLensShadingFD(const RPi::BufferObject &paramsBufObj);
 
 	std::queue<BayerFrame> bayerQueue_;
 	std::queue<FrameBuffer *> embeddedQueue_;
@@ -412,7 +413,6 @@ int PipelineHandlerVc4::platformRegister(std::unique_ptr<RPi::CameraData> &camer
 	/* Write up all the IPA connections. */
 	data->ipa_->processStatsComplete.connect(data, &Vc4CameraData::processStatsComplete);
 	data->ipa_->prepareIspComplete.connect(data, &Vc4CameraData::prepareIspComplete);
-	data->ipa_->setIspControls.connect(data, &Vc4CameraData::setIspControls);
 	data->ipa_->setCameraTimeout.connect(data, &Vc4CameraData::setCameraTimeout);
 
 	/*
@@ -824,8 +824,6 @@ int Vc4CameraData::platformConfigure(const RPi::RPiCameraConfiguration *rpiConfi
 
 int Vc4CameraData::platformConfigureIpa(ipa::RPi::ConfigParams &params)
 {
-	params.ispControls = isp_[Isp::Input].dev()->controls();
-
 	/* Allocate the lens shading table via dmaHeap and pass to the IPA. */
 	if (!lsTable_.isValid()) {
 		lsTable_ = SharedFD(dmaHeap_.alloc("ls_grid", ipa::RPi::MaxLsGridSize));
@@ -968,17 +966,65 @@ void Vc4CameraData::processStatsComplete(const ipa::RPi::BufferIds &buffers)
 	handleState();
 }
 
+/*
+ * Populate the lens shading table's dmabuf descriptor inside the params buffer.
+ *
+ * While the IPA fills the lens shading table, it may run in an isolated
+ * process context, so it does not populate the dmabuf file descriptor.
+ *
+ * Do that here.
+ */
+void Vc4CameraData::populateLensShadingFD(const RPi::BufferObject &paramsBufObj)
+{
+	std::span<uint8_t> plane = paramsBufObj.mapped->planes()[0];
+	auto *paramsBuffer =
+		reinterpret_cast<struct v4l2_isp_params_buffer *>(plane.data());
+	uint8_t *data = paramsBuffer->data;
+	uint32_t offset = 0;
+
+	while (offset < paramsBuffer->data_size) {
+		auto *blockHeader =
+			reinterpret_cast<struct v4l2_isp_params_block_header *>(data + offset);
+
+		if (blockHeader->type == BCM2835_ISP_PARAM_BLOCK_LENS_SHADING) {
+			auto *lsBlock =
+				reinterpret_cast<struct bcm2835_isp_params_lens_shading *>(blockHeader);
+			lsBlock->ls.dmabuf = lsTable_.get();
+			return;
+		}
+
+		offset += blockHeader->size;
+	}
+
+	LOG(RPI, Error) << "Unable to populate lens-shading dmabuf fd";
+}
+
 void Vc4CameraData::prepareIspComplete(const ipa::RPi::BufferIds &buffers,
 				       [[maybe_unused]] bool stitchSwapBuffers,
-				       [[maybe_unused]] unsigned int paramsBytesUsed)
+				       unsigned int paramsBytesUsed)
 {
 	unsigned int embeddedId = buffers.embedded & RPi::MaskID;
+	unsigned int paramsId = buffers.params & RPi::MaskID;
 	unsigned int bayer = buffers.bayer & RPi::MaskID;
 	FrameBuffer *buffer;
 
 	if (!isRunning())
 		return;
 
+	/* Queue params buffer */
+	const RPi::BufferObject &paramsBufObj = isp_[Isp::Params].getBuffers().at(paramsId);
+	ASSERT(paramsBufObj.mapped);
+	populateLensShadingFD(paramsBufObj);
+	buffer = paramsBufObj.buffer;
+	buffer->_d()->metadata().planes()[0].bytesused = paramsBytesUsed;
+
+	LOG(RPI, Debug) << "Queue params to ISP, buffer id " << paramsId
+			<< ", timestamp: " << buffer->metadata().timestamp
+			<< ", bytes used: " << paramsBytesUsed;
+
+	isp_[Isp::Params].queueBuffer(buffer);
+
+	/* Queue input buffer */
 	buffer = unicam_[Unicam::Image].getBuffers().at(bayer & RPi::MaskID).buffer;
 	LOG(RPI, Debug) << "Input re-queue to ISP, buffer id " << (bayer & RPi::MaskID)
 			<< ", timestamp: " << buffer->metadata().timestamp;
@@ -990,23 +1036,6 @@ void Vc4CameraData::prepareIspComplete(const ipa::RPi::BufferIds &buffers,
 		handleStreamBuffer(buffer, &unicam_[Unicam::Embedded]);
 	}
 
-	handleState();
-}
-
-void Vc4CameraData::setIspControls(const ControlList &controls)
-{
-	ControlList ctrls = controls;
-
-	if (ctrls.contains(V4L2_CID_USER_BCM2835_ISP_LENS_SHADING)) {
-		ControlValue &value =
-			const_cast<ControlValue &>(ctrls.get(V4L2_CID_USER_BCM2835_ISP_LENS_SHADING));
-		std::span<uint8_t> s = value.data();
-		bcm2835_isp_lens_shading *ls =
-			reinterpret_cast<bcm2835_isp_lens_shading *>(s.data());
-		ls->dmabuf = lsTable_.get();
-	}
-
-	isp_[Isp::Input].dev()->setControls(&ctrls);
 	handleState();
 }
 
@@ -1037,6 +1066,11 @@ void Vc4CameraData::tryRunPipeline()
 	if (!findMatchingBuffers(bayerFrame, embeddedBuffer))
 		return;
 
+	/* Request a parameter buffer, will be released by ispOutputDequeue */
+	const RPi::BufferObject &paramBufObj = isp_[Isp::Params].acquireBuffer();
+	if (!paramBufObj.buffer || !paramBufObj.mapped)
+		return;
+
 	/* Take the first request from the queue and action the IPA. */
 	Request *request = requestQueue_.front();
 	ASSERT(request->metadata().empty());
@@ -1047,9 +1081,6 @@ void Vc4CameraData::tryRunPipeline()
 	fillRequestMetadata(bayerFrame.controls, request);
 
 	unsigned int bayer = unicam_[Unicam::Image].getBufferId(bayerFrame.buffer);
-
-	LOG(RPI, Debug) << "Signalling prepareIsp:"
-			<< " Bayer buffer id: " << bayer;
 
 	ipa::RPi::PrepareParams params;
 	params.buffers.bayer = RPi::MaskBayerData | bayer;
@@ -1064,6 +1095,14 @@ void Vc4CameraData::tryRunPipeline()
 
 	/* Set our state to say the pipeline is active. */
 	state_ = State::Busy;
+
+	unsigned int paramId = isp_[Isp::Params].getBufferId(paramBufObj.buffer);
+	ASSERT(paramId);
+	params.buffers.params = RPi::MaskParams | paramId;
+
+	LOG(RPI, Debug) << "Signalling prepareIsp:"
+			<< " Bayer buffer id: " << bayer
+			<< " Param buffer id: " << paramId;
 
 	if (embeddedBuffer) {
 		unsigned int embeddedId = unicam_[Unicam::Embedded].getBufferId(embeddedBuffer);
