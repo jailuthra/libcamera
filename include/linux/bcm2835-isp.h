@@ -13,27 +13,8 @@
 #ifndef __BCM2835_ISP_H_
 #define __BCM2835_ISP_H_
 
-#include <linux/v4l2-controls.h>
 #include <linux/media/v4l2-isp.h>
 
-#define V4L2_CID_USER_BCM2835_ISP_CC_MATRIX	\
-				(V4L2_CID_USER_BCM2835_ISP_BASE + 0x0001)
-#define V4L2_CID_USER_BCM2835_ISP_LENS_SHADING	\
-				(V4L2_CID_USER_BCM2835_ISP_BASE + 0x0002)
-#define V4L2_CID_USER_BCM2835_ISP_BLACK_LEVEL	\
-				(V4L2_CID_USER_BCM2835_ISP_BASE + 0x0003)
-#define V4L2_CID_USER_BCM2835_ISP_GEQ		\
-				(V4L2_CID_USER_BCM2835_ISP_BASE + 0x0004)
-#define V4L2_CID_USER_BCM2835_ISP_GAMMA		\
-				(V4L2_CID_USER_BCM2835_ISP_BASE + 0x0005)
-#define V4L2_CID_USER_BCM2835_ISP_DENOISE	\
-				(V4L2_CID_USER_BCM2835_ISP_BASE + 0x0006)
-#define V4L2_CID_USER_BCM2835_ISP_SHARPEN	\
-				(V4L2_CID_USER_BCM2835_ISP_BASE + 0x0007)
-#define V4L2_CID_USER_BCM2835_ISP_DPC		\
-				(V4L2_CID_USER_BCM2835_ISP_BASE + 0x0008)
-#define V4L2_CID_USER_BCM2835_ISP_CDN \
-				(V4L2_CID_USER_BCM2835_ISP_BASE + 0x0009)
 /*
  * All structs below are directly mapped onto the equivalent structs in
  * drivers/staging/vc04_services/vchiq-mmal/mmal-parameters.h
@@ -63,8 +44,7 @@ struct bcm2835_isp_ccm {
 };
 
 /**
- * struct bcm2835_isp_custom_ccm - Custom CCM applied with the
- *				   V4L2_CID_USER_BCM2835_ISP_CC_MATRIX ctrl.
+ * struct bcm2835_isp_custom_ccm - Custom CCM configuration.
  *
  * @enabled:	Enable custom CCM.
  * @ccm:	Custom CCM coefficients and offsets.
@@ -76,8 +56,7 @@ struct bcm2835_isp_custom_ccm {
 
 /**
  * enum bcm2835_isp_gain_format - format of the gains in the lens shading
- *				  tables used with the
- *				  V4L2_CID_USER_BCM2835_ISP_LENS_SHADING ctrl.
+ *				  tables.
  *
  * @GAIN_FORMAT_U0P8_1:		Gains are u0.8 format, starting at 1.0
  * @GAIN_FORMAT_U1P7_0:		Gains are u1.7 format, starting at 0.0
@@ -100,9 +79,7 @@ enum bcm2835_isp_gain_format {
 };
 
 /**
- * struct bcm2835_isp_lens_shading - Lens shading tables supplied with the
- *				     V4L2_CID_USER_BCM2835_ISP_LENS_SHADING
- *				     ctrl.
+ * struct bcm2835_isp_lens_shading - Lens shading tables.
  *
  * @enabled:		Enable lens shading.
  * @grid_cell_size:	Size of grid cells in samples (16, 32, 64, 128 or 256).
@@ -129,13 +106,13 @@ struct bcm2835_isp_lens_shading {
 };
 
 /**
- * struct bcm2835_isp_black_level - Sensor black level set with the
- *				    V4L2_CID_USER_BCM2835_ISP_BLACK_LEVEL ctrl.
+ * struct bcm2835_isp_black_level - Sensor black level configuration.
  *
  * @enabled:		Enable black level.
  * @black_level_r:	Black level for red channel.
  * @black_level_g:	Black level for green channels.
  * @black_level_b:	Black level for blue channel.
+ * @padding:		Unused padding.
  */
 struct bcm2835_isp_black_level {
 	__u32 enabled;
@@ -146,8 +123,7 @@ struct bcm2835_isp_black_level {
 };
 
 /**
- * struct bcm2835_isp_geq - Green equalisation parameters set with the
- *			    V4L2_CID_USER_BCM2835_ISP_GEQ ctrl.
+ * struct bcm2835_isp_geq - Green equalisation parameters.
  *
  * @enabled:	Enable green equalisation.
  * @offset:	Fixed offset of the green equalisation threshold.
@@ -162,13 +138,12 @@ struct bcm2835_isp_geq {
 #define BCM2835_NUM_GAMMA_PTS 33
 
 /**
- * struct bcm2835_isp_gamma - Gamma parameters set with the
- *			      V4L2_CID_USER_BCM2835_ISP_GAMMA ctrl.
+ * struct bcm2835_isp_gamma - Gamma parameters.
  *
  * @enabled:	Enable gamma adjustment.
- * @X:		X values of the points defining the gamma curve.
+ * @x:		X values of the points defining the gamma curve.
  *		Values should be scaled to 16 bits.
- * @Y:		Y values of the points defining the gamma curve.
+ * @y:		Y values of the points defining the gamma curve.
  *		Values should be scaled to 16 bits.
  */
 struct bcm2835_isp_gamma {
@@ -180,9 +155,9 @@ struct bcm2835_isp_gamma {
 /**
  * enum bcm2835_isp_cdn_mode - Mode of operation for colour denoise.
  *
-  * @CDN_MODE_FAST:		Fast (but lower quality) colour denoise
+ * @CDN_MODE_FAST:		Fast (but lower quality) colour denoise
  *				algorithm, typically used for video recording.
- * @CDN_HIGH_QUALITY:		High quality (but slower) colour denoise
+ * @CDN_MODE_HIGH_QUALITY:	High quality (but slower) colour denoise
  *				algorithm, typically used for stills capture.
  */
 enum bcm2835_isp_cdn_mode {
@@ -191,11 +166,10 @@ enum bcm2835_isp_cdn_mode {
 };
 
 /**
- * struct bcm2835_isp_cdn - Colour denoise parameters set with the
- *			    V4L2_CID_USER_BCM2835_ISP_CDN ctrl.
+ * struct bcm2835_isp_cdn - Colour denoise parameters.
  *
  * @enabled:	Enable colour denoise.
- * @cdn_mode:	Colour denoise operating mode (see enum &bcm2835_isp_cdn_mode)
+ * @mode:	Colour denoise operating mode (see enum &bcm2835_isp_cdn_mode)
  */
 struct bcm2835_isp_cdn {
 	__u32 enabled;
@@ -203,8 +177,7 @@ struct bcm2835_isp_cdn {
 };
 
 /**
- * struct bcm2835_isp_denoise - Denoise parameters set with the
- *				V4L2_CID_USER_BCM2835_ISP_DENOISE ctrl.
+ * struct bcm2835_isp_denoise - Denoise parameters.
  *
  * @enabled:	Enable denoise.
  * @constant:	Fixed offset of the noise threshold.
@@ -219,8 +192,7 @@ struct bcm2835_isp_denoise {
 };
 
 /**
- * struct bcm2835_isp_sharpen - Sharpen parameters set with the
- *				V4L2_CID_USER_BCM2835_ISP_SHARPEN ctrl.
+ * struct bcm2835_isp_sharpen - Sharpen parameters.
  *
  * @enabled:	Enable sharpening.
  * @threshold:	Threshold at which to start sharpening pixels.
@@ -248,8 +220,7 @@ enum bcm2835_isp_dpc_mode {
 };
 
 /**
- * struct bcm2835_isp_dpc - Defective pixel correction (DPC) parameters set
- *			    with the V4L2_CID_USER_BCM2835_ISP_DPC ctrl.
+ * struct bcm2835_isp_dpc - Defective pixel correction (DPC) parameters.
  *
  * @enabled:	Enable DPC.
  * @strength:	DPC strength (see enum &bcm2835_isp_dpc_mode).
