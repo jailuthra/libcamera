@@ -7,7 +7,7 @@
 
 #include <memory>
 
-#include <linux/bcm2835-isp.h>
+#include <linux/media/broadcom/bcm2835-isp.h>
 #include <linux/v4l2-controls.h>
 #include <linux/videodev2.h>
 

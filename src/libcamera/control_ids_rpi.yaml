@@ -28,7 +28,7 @@ controls:
 
         This is sent in the Request metadata if the StatsOutputEnable is set to
         true.  The statistics struct definition can be found in
-        include/linux/bcm2835-isp.h.
+        include/linux/media/broadcom/bcm2835-isp.h.
 
         \sa StatsOutputEnable
 

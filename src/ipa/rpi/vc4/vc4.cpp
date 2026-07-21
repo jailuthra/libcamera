@@ -10,7 +10,7 @@
 #include <string.h>
 #include <sys/mman.h>
 
-#include <linux/bcm2835-isp.h>
+#include <linux/media/broadcom/bcm2835-isp.h>
 
 #include <libcamera/base/log.h>
 #include <libcamera/control_ids.h>
