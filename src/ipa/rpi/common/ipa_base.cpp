@@ -418,6 +418,7 @@ void IpaBase::prepareIsp(const PrepareParams &params)
 	unsigned int ipaContext = params.ipaContext % rpiMetadata_.size();
 	RPiController::Metadata &rpiMetadata = rpiMetadata_[ipaContext];
 	std::span<uint8_t> embeddedBuffer;
+	std::span<uint8_t> paramsBuffer;
 
 	rpiMetadata.clear();
 	fillDeviceStatus(params.sensorControls, ipaContext);
@@ -439,6 +440,13 @@ void IpaBase::prepareIsp(const PrepareParams &params)
 		auto it = buffers_.find(params.buffers.embedded);
 		ASSERT(it != buffers_.end());
 		embeddedBuffer = it->second.planes()[0];
+	}
+
+	if (params.buffers.params) {
+		auto it = buffers_.find(params.buffers.params);
+		ASSERT(it != buffers_.end());
+		paramsBuffer = it->second.planes()[0];
+		platformParamsBufferInit(paramsBuffer);
 	}
 
 	/*
@@ -513,7 +521,8 @@ void IpaBase::prepareIsp(const PrepareParams &params)
 		reportMetadata(ipaContext);
 
 	/* Ready to push the input buffer into the ISP. */
-	prepareIspComplete.emit(params.buffers, stitchSwapBuffers_);
+	prepareIspComplete.emit(params.buffers, stitchSwapBuffers_,
+				platformParamsBytesUsed());
 }
 
 void IpaBase::processStats(const ProcessParams &params)
