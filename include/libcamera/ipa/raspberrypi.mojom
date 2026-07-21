@@ -33,6 +33,7 @@ struct BufferIds {
 	uint32 bayer;
 	uint32 embedded;
 	uint32 stats;
+	uint32 params;
 };
 
 struct ConfigParams {
@@ -227,7 +228,7 @@ interface IPARPiEventInterface {
 	 * processing the frame. The embedded data buffer may be recycled after
 	 * this event.
 	 */
-	prepareIspComplete(BufferIds buffers, bool stitchSwapBuffers);
+	prepareIspComplete(BufferIds buffers, bool stitchSwapBuffers, uint32 paramsBytesUsed);
 
 	/**
 	 * \fn processStatsComplete()
