@@ -33,6 +33,7 @@ struct BufferIds {
 	uint32 bayer;
 	uint32 embedded;
 	uint32 stats;
+	uint32 params;
 };
 
 struct ConfigParams {
@@ -219,15 +220,16 @@ interface IPARPiEventInterface {
 	/**
 	 * \fn prepareIspComplete()
 	 * \brief Signal completion of \a prepareIsp
-	 * \param[in] buffers Bayer and embedded buffers actioned.
+	 * \param[in] buffers Bayer, embedded and parameter buffers actioned.
 	 * \param[in] stitchSwapBuffers Whether the stitch block buffers need to be swapped.
+	 * \param[in] paramsBytesUsed Number of bytes used in the parameter buffer
 	 *
 	 * This asynchronous event is signalled to the pipeline handler once
 	 * the \a prepareIsp signal has completed, and the ISP is ready to start
 	 * processing the frame. The embedded data buffer may be recycled after
 	 * this event.
 	 */
-	prepareIspComplete(BufferIds buffers, bool stitchSwapBuffers);
+	prepareIspComplete(BufferIds buffers, bool stitchSwapBuffers, uint32 paramsBytesUsed);
 
 	/**
 	 * \fn processStatsComplete()
