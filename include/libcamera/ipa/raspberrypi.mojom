@@ -39,7 +39,6 @@ struct BufferIds {
 struct ConfigParams {
 	uint32 transform;
 	libcamera.ControlInfoMap sensorControls;
-	libcamera.ControlInfoMap ispControls;
 	libcamera.ControlInfoMap lensControls;
         /* VC4 specific */
 	libcamera.SharedFD lsTableHandle;
@@ -252,17 +251,6 @@ interface IPARPiEventInterface {
 	 * application.
 	 */
 	metadataReady(libcamera.ControlList metadata);
-
-	/**
-	 * \fn setIspControls()
-	 * \brief Signal ISP controls to be applied.
-	 * \param[in] controls List of controls to be applied.
-	 *
-	 * This asynchronous event is signalled to the pipeline handler during
-	 * the \a prepareISP signal after all algorithms have been run and the
-	 * IPA requires ISP controls to be applied for the frame.
-	 */
-	setIspControls(libcamera.ControlList controls);
 
 	/**
 	 * \fn setDelayedControls()
