@@ -9,7 +9,7 @@
 
 #include <stdint.h>
 
-#include <linux/bcm2835-isp.h>
+#include <linux/media/broadcom/bcm2835-isp.h>
 
 #include <libipa/v4l2_params.h>
 
