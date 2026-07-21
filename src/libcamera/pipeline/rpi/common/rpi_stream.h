@@ -30,6 +30,7 @@ enum BufferMask {
 	MaskStats		= 0x010000,
 	MaskEmbeddedData	= 0x020000,
 	MaskBayerData		= 0x040000,
+	MaskParams		= 0x080000,
 };
 
 struct BufferObject {

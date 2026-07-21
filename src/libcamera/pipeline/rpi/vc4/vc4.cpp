@@ -32,7 +32,7 @@ using StreamParams = RPi::RPiCameraConfiguration::StreamParams;
 namespace {
 
 enum class Unicam : unsigned int { Image, Embedded };
-enum class Isp : unsigned int { Input, Output0, Output1, Stats };
+enum class Isp : unsigned int { Input, Output0, Output1, Stats, Params };
 
 static constexpr unsigned int kUnicamSinkPad = 0;
 static constexpr unsigned int kUnicamSourceImagePad = 1;
@@ -93,7 +93,7 @@ public:
 
 	/* Array of Unicam and ISP device streams and associated buffers/streams. */
 	RPi::Device<Unicam, 2> unicam_;
-	RPi::Device<Isp, 4> isp_;
+	RPi::Device<Isp, 5> isp_;
 
 	/* DMAHEAP allocation helper. */
 	DmaBufAllocator dmaHeap_;
@@ -267,6 +267,13 @@ int PipelineHandlerVc4::allocateBuffers(Camera *camera)
 				     std::max<int>(data->config_.minUnicamBuffers,
 						   minBuffers - numRawBuffers);
 
+		} else if (stream == &data->isp_[Isp::Params]) {
+			/*
+			 * Parameter buffers are dequeued immediately after
+			 * sending the commands to VC4 firmware. Ideally, 1
+			 * buffer would be sufficient, but allot 2 to be safe.
+			 */
+			numBuffers = 2;
 		} else if (stream == &data->unicam_[Unicam::Embedded]) {
 			/*
 			 * Embedded data buffers are (currently) for internal use, and
@@ -303,10 +310,11 @@ int PipelineHandlerVc4::allocateBuffers(Camera *camera)
 	}
 
 	/*
-	 * Pass the stats and embedded data buffers to the IPA. No other
-	 * buffers need to be passed.
+	 * Pass the stats, embedded data and parameter buffers to the IPA. No
+	 * other buffers need to be passed.
 	 */
 	mapBuffers(camera, data->isp_[Isp::Stats].getBuffers(), RPi::MaskStats);
+	mapBuffers(camera, data->isp_[Isp::Params].getBuffers(), RPi::MaskParams);
 	if (data->sensorMetadata_)
 		mapBuffers(camera, data->unicam_[Unicam::Embedded].getBuffers(),
 			   RPi::MaskEmbeddedData);
@@ -325,13 +333,14 @@ int PipelineHandlerVc4::platformRegister(std::unique_ptr<RPi::CameraData> &camer
 
 	MediaEntity *unicamSubdev = unicam->getEntityByName("unicam");
 	MediaEntity *unicamImage = unicam->getEntityByName("unicam-image");
-	MediaEntity *ispOutput0 = isp->getEntityByName("bcm2835-isp0-output0");
-	MediaEntity *ispCapture1 = isp->getEntityByName("bcm2835-isp0-capture1");
-	MediaEntity *ispCapture2 = isp->getEntityByName("bcm2835-isp0-capture2");
-	MediaEntity *ispCapture3 = isp->getEntityByName("bcm2835-isp0-capture3");
+	MediaEntity *ispOutput0 = isp->getEntityByName("bcm2835-isp-output0");
+	MediaEntity *ispCapture0 = isp->getEntityByName("bcm2835-isp-capture0");
+	MediaEntity *ispCapture1 = isp->getEntityByName("bcm2835-isp-capture1");
+	MediaEntity *ispCapture2 = isp->getEntityByName("bcm2835-isp-stats2");
+	MediaEntity *ispParams = isp->getEntityByName("bcm2835-isp-params");
 
-	if (!unicamSubdev || !unicamImage || !ispOutput0 || !ispCapture1 ||
-	    !ispCapture2 || !ispCapture3)
+	if (!unicamSubdev || !unicamImage || !ispOutput0 || !ispCapture0 ||
+	    !ispCapture1 || !ispCapture2 || !ispParams)
 		return -ENOENT;
 
 	/* Create the unicam subdev and video streams. */
@@ -348,9 +357,12 @@ int PipelineHandlerVc4::platformRegister(std::unique_ptr<RPi::CameraData> &camer
 
 	/* Tag the ISP input stream as an import stream. */
 	data->isp_[Isp::Input] = RPi::Stream("ISP Input", ispOutput0, StreamFlag::ImportOnly);
-	data->isp_[Isp::Output0] = RPi::Stream("ISP Output0", ispCapture1);
-	data->isp_[Isp::Output1] = RPi::Stream("ISP Output1", ispCapture2);
-	data->isp_[Isp::Stats] = RPi::Stream("ISP Stats", ispCapture3);
+	data->isp_[Isp::Output0] = RPi::Stream("ISP Output0", ispCapture0);
+	data->isp_[Isp::Output1] = RPi::Stream("ISP Output1", ispCapture1);
+	data->isp_[Isp::Stats] = RPi::Stream("ISP Stats", ispCapture2);
+	/* Tag the ISP params stream as MMAP (for writing into it in the IPA) and recurrent. */
+	data->isp_[Isp::Params] = RPi::Stream("ISP Params", ispParams,
+					      StreamFlag::RequiresMmap | StreamFlag::Recurrent);
 
 	/* Wire up all the buffer connections. */
 	data->unicam_[Unicam::Image].dev()->bufferReady.connect(data, &Vc4CameraData::unicamBufferDequeue);
@@ -358,6 +370,7 @@ int PipelineHandlerVc4::platformRegister(std::unique_ptr<RPi::CameraData> &camer
 	data->isp_[Isp::Output0].dev()->bufferReady.connect(data, &Vc4CameraData::ispOutputDequeue);
 	data->isp_[Isp::Output1].dev()->bufferReady.connect(data, &Vc4CameraData::ispOutputDequeue);
 	data->isp_[Isp::Stats].dev()->bufferReady.connect(data, &Vc4CameraData::ispOutputDequeue);
+	data->isp_[Isp::Params].dev()->bufferReady.connect(data, &Vc4CameraData::ispOutputDequeue);
 
 	if (data->sensorMetadata_ ^ !!data->unicam_[Unicam::Embedded].dev()) {
 		LOG(RPI, Warning) << "Mismatch between Unicam and CamHelper for embedded data usage!";
@@ -754,6 +767,16 @@ int Vc4CameraData::platformConfigure(const RPi::RPiCameraConfiguration *rpiConfi
 	ret = isp_[Isp::Stats].dev()->setFormat(&format);
 	if (ret) {
 		LOG(RPI, Error) << "Failed to set format on ISP stats stream: "
+				<< format;
+		return ret;
+	}
+
+	/* ISP parameters input format. */
+	format = {};
+	format.fourcc = V4L2PixelFormat(V4L2_META_FMT_BCM2835_ISP_PARAMS);
+	ret = isp_[Isp::Params].dev()->setFormat(&format);
+	if (ret) {
+		LOG(RPI, Error) << "Failed to set format on ISP params stream: "
 				<< format;
 		return ret;
 	}
