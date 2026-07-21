@@ -754,7 +754,8 @@ public:
 	void beOutputDequeue(FrameBuffer *buffer);
 
 	void processStatsComplete(const ipa::RPi::BufferIds &buffers);
-	void prepareIspComplete(const ipa::RPi::BufferIds &buffers, bool stitchSwapBuffers);
+	void prepareIspComplete(const ipa::RPi::BufferIds &buffers, bool stitchSwapBuffers,
+				unsigned int paramsBytesUsed);
 	void setCameraTimeout(uint32_t maxFrameLengthMs);
 
 	/* Array of CFE and ISP device streams and associated buffers/streams. */
@@ -1854,7 +1855,8 @@ void PiSPCameraData::setCameraTimeout(uint32_t maxFrameLengthMs)
 	cfe_[Cfe::Output0].dev()->setDequeueTimeout(timeout);
 }
 
-void PiSPCameraData::prepareIspComplete(const ipa::RPi::BufferIds &buffers, bool stitchSwapBuffers)
+void PiSPCameraData::prepareIspComplete(const ipa::RPi::BufferIds &buffers, bool stitchSwapBuffers,
+					[[maybe_unused]] unsigned int paramsBytesUsed)
 {
 	unsigned int embeddedId = buffers.embedded & RPi::MaskID;
 	unsigned int bayerId = buffers.bayer & RPi::MaskID;
