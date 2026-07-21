@@ -14,6 +14,7 @@
 #define __BCM2835_ISP_H_
 
 #include <linux/v4l2-controls.h>
+#include <linux/media/v4l2-isp.h>
 
 #define V4L2_CID_USER_BCM2835_ISP_CC_MATRIX	\
 				(V4L2_CID_USER_BCM2835_ISP_BASE + 0x0001)
@@ -257,6 +258,218 @@ struct bcm2835_isp_dpc {
 	__u32 enabled;
 	__u32 strength;
 };
+
+/**
+ * struct bcm2835_isp_awb_gains - AWB gains configuration.
+ *
+ * @r_gain:	Red channel AWB gain.
+ * @b_gain:	Blue channel AWB gain.
+ */
+struct bcm2835_isp_awb_gains {
+	struct bcm2835_isp_rational r_gain;
+	struct bcm2835_isp_rational b_gain;
+};
+
+/**
+ * struct bcm2835_isp_digital_gain - Digital gain configuration.
+ *
+ * @gain:	Digital gain value.
+ */
+struct bcm2835_isp_digital_gain {
+	struct bcm2835_isp_rational gain;
+};
+
+/*
+ * BCM2835 ISP extensible parameters buffer definitions.
+ *
+ * The extensible parameters mechanism allows userspace to submit ISP
+ * configuration parameters as a buffer containing a series of tagged
+ * blocks rather than individual V4L2 controls. This enables atomic
+ * application of multiple parameters in a single operation.
+ */
+
+/**
+ * enum bcm2835_isp_param_buffer_version - BCM2835 ISP parameters buffer version
+ *
+ * @BCM2835_ISP_PARAM_BUFFER_V1: First version of parameters buffer format
+ */
+enum bcm2835_isp_param_buffer_version {
+	BCM2835_ISP_PARAM_BUFFER_V1 = V4L2_ISP_PARAMS_VERSION_V1,
+};
+
+/**
+ * enum bcm2835_isp_param_block_type - BCM2835 ISP parameter block types
+ *
+ * This enumeration defines the types of parameters blocks that can be
+ * included in the extensible parameters buffer. Each block type corresponds
+ * to a specific ISP processing block configuration.
+ *
+ * @BCM2835_ISP_PARAM_BLOCK_BLACK_LEVEL: Black level configuration
+ * @BCM2835_ISP_PARAM_BLOCK_GEQ: Green equalisation configuration
+ * @BCM2835_ISP_PARAM_BLOCK_GAMMA: Gamma curve configuration
+ * @BCM2835_ISP_PARAM_BLOCK_DENOISE: Denoise configuration
+ * @BCM2835_ISP_PARAM_BLOCK_SHARPEN: Sharpening configuration
+ * @BCM2835_ISP_PARAM_BLOCK_DPC: Defective pixel correction configuration
+ * @BCM2835_ISP_PARAM_BLOCK_CDN: Colour denoise configuration
+ * @BCM2835_ISP_PARAM_BLOCK_CC_MATRIX: Colour correction matrix configuration
+ * @BCM2835_ISP_PARAM_BLOCK_LENS_SHADING: Lens shading table configuration
+ * @BCM2835_ISP_PARAM_BLOCK_AWB_GAINS: AWB gains configuration
+ * @BCM2835_ISP_PARAM_BLOCK_DIGITAL_GAIN: Digital gain configuration
+ */
+enum bcm2835_isp_param_block_type {
+	BCM2835_ISP_PARAM_BLOCK_BLACK_LEVEL,
+	BCM2835_ISP_PARAM_BLOCK_GEQ,
+	BCM2835_ISP_PARAM_BLOCK_GAMMA,
+	BCM2835_ISP_PARAM_BLOCK_DENOISE,
+	BCM2835_ISP_PARAM_BLOCK_SHARPEN,
+	BCM2835_ISP_PARAM_BLOCK_DPC,
+	BCM2835_ISP_PARAM_BLOCK_CDN,
+	BCM2835_ISP_PARAM_BLOCK_CC_MATRIX,
+	BCM2835_ISP_PARAM_BLOCK_LENS_SHADING,
+	BCM2835_ISP_PARAM_BLOCK_AWB_GAINS,
+	BCM2835_ISP_PARAM_BLOCK_DIGITAL_GAIN,
+};
+
+/**
+ * struct bcm2835_isp_params_black_level - Black level parameters block
+ *
+ * @header: Block header (type = BCM2835_ISP_PARAM_BLOCK_BLACK_LEVEL)
+ * @black_level: Black level configuration
+ */
+struct bcm2835_isp_params_black_level {
+	struct v4l2_isp_params_block_header header;
+	struct bcm2835_isp_black_level black_level;
+} __attribute__((aligned(8)));
+
+/**
+ * struct bcm2835_isp_params_geq - Green equalisation parameters block
+ *
+ * @header: Block header (type = BCM2835_ISP_PARAM_BLOCK_GEQ)
+ * @geq: Green equalisation configuration
+ */
+struct bcm2835_isp_params_geq {
+	struct v4l2_isp_params_block_header header;
+	struct bcm2835_isp_geq geq;
+} __attribute__((aligned(8)));
+
+/**
+ * struct bcm2835_isp_params_gamma - Gamma parameters block
+ *
+ * @header: Block header (type = BCM2835_ISP_PARAM_BLOCK_GAMMA)
+ * @gamma: Gamma curve configuration
+ */
+struct bcm2835_isp_params_gamma {
+	struct v4l2_isp_params_block_header header;
+	struct bcm2835_isp_gamma gamma;
+} __attribute__((aligned(8)));
+
+/**
+ * struct bcm2835_isp_params_denoise - Denoise parameters block
+ *
+ * @header: Block header (type = BCM2835_ISP_PARAM_BLOCK_DENOISE)
+ * @denoise: Denoise configuration
+ */
+struct bcm2835_isp_params_denoise {
+	struct v4l2_isp_params_block_header header;
+	struct bcm2835_isp_denoise denoise;
+} __attribute__((aligned(8)));
+
+/**
+ * struct bcm2835_isp_params_sharpen - Sharpen parameters block
+ *
+ * @header: Block header (type = BCM2835_ISP_PARAM_BLOCK_SHARPEN)
+ * @sharpen: Sharpening configuration
+ */
+struct bcm2835_isp_params_sharpen {
+	struct v4l2_isp_params_block_header header;
+	struct bcm2835_isp_sharpen sharpen;
+} __attribute__((aligned(8)));
+
+/**
+ * struct bcm2835_isp_params_dpc - Defective pixel correction parameters block
+ *
+ * @header: Block header (type = BCM2835_ISP_PARAM_BLOCK_DPC)
+ * @dpc: DPC configuration
+ */
+struct bcm2835_isp_params_dpc {
+	struct v4l2_isp_params_block_header header;
+	struct bcm2835_isp_dpc dpc;
+} __attribute__((aligned(8)));
+
+/**
+ * struct bcm2835_isp_params_cdn - Colour denoise parameters block
+ *
+ * @header: Block header (type = BCM2835_ISP_PARAM_BLOCK_CDN)
+ * @cdn: Colour denoise configuration
+ */
+struct bcm2835_isp_params_cdn {
+	struct v4l2_isp_params_block_header header;
+	struct bcm2835_isp_cdn cdn;
+} __attribute__((aligned(8)));
+
+/**
+ * struct bcm2835_isp_params_cc_matrix - Colour correction matrix parameters block
+ *
+ * @header: Block header (type = BCM2835_ISP_PARAM_BLOCK_CC_MATRIX)
+ * @ccm: Colour correction matrix configuration
+ */
+struct bcm2835_isp_params_cc_matrix {
+	struct v4l2_isp_params_block_header header;
+	struct bcm2835_isp_custom_ccm ccm;
+} __attribute__((aligned(8)));
+
+/**
+ * struct bcm2835_isp_params_lens_shading - Lens shading parameters block
+ *
+ * @header: Block header (type = BCM2835_ISP_PARAM_BLOCK_LENS_SHADING)
+ * @ls: Lens shading configuration (includes dmabuf fd for table data)
+ */
+struct bcm2835_isp_params_lens_shading {
+	struct v4l2_isp_params_block_header header;
+	struct bcm2835_isp_lens_shading ls;
+} __attribute__((aligned(8)));
+
+/**
+ * struct bcm2835_isp_params_awb_gains - AWB gains parameters block
+ *
+ * @header: Block header (type = BCM2835_ISP_PARAM_BLOCK_AWB_GAINS)
+ * @awb_gains: AWB gains configuration
+ */
+struct bcm2835_isp_params_awb_gains {
+	struct v4l2_isp_params_block_header header;
+	struct bcm2835_isp_awb_gains awb_gains;
+} __attribute__((aligned(8)));
+
+/**
+ * struct bcm2835_isp_params_digital_gain - Digital gain parameters block
+ *
+ * @header: Block header (type = BCM2835_ISP_PARAM_BLOCK_DIGITAL_GAIN)
+ * @digital_gain: Digital gain configuration
+ */
+struct bcm2835_isp_params_digital_gain {
+	struct v4l2_isp_params_block_header header;
+	struct bcm2835_isp_digital_gain digital_gain;
+} __attribute__((aligned(8)));
+
+/**
+ * define BCM2835_ISP_PARAMS_MAX_SIZE - Maximum size of all ISP parameters
+ *
+ * This defines the maximum size needed to accommodate all possible parameter
+ * blocks in a single buffer. Drivers use this to allocate appropriately
+ * sized buffers.
+ */
+#define BCM2835_ISP_PARAMS_MAX_SIZE					\
+	(sizeof(struct bcm2835_isp_params_black_level) +		\
+	 sizeof(struct bcm2835_isp_params_geq) +			\
+	 sizeof(struct bcm2835_isp_params_gamma) +			\
+	 sizeof(struct bcm2835_isp_params_denoise) +			\
+	 sizeof(struct bcm2835_isp_params_sharpen) +			\
+	 sizeof(struct bcm2835_isp_params_dpc) +			\
+	 sizeof(struct bcm2835_isp_params_cdn) +			\
+	 sizeof(struct bcm2835_isp_params_cc_matrix) +			\
+	 sizeof(struct bcm2835_isp_params_lens_shading) +		\
+	 sizeof(struct bcm2835_isp_params_awb_gains) +			\
+	 sizeof(struct bcm2835_isp_params_digital_gain))
 
 /*
  * ISP statistics structures.
