@@ -87,8 +87,7 @@ private:
 	virtual int32_t platformStart(const ControlList &controls, StartResult *result) = 0;
 	virtual int32_t platformConfigure(const ConfigParams &params, ConfigResult *result) = 0;
 
-	virtual void platformPrepareIsp(const PrepareParams &params,
-					RPiController::Metadata &rpiMetadata) = 0;
+	virtual void platformPrepareIsp(RPiController::Metadata &rpiMetadata) = 0;
 	virtual void platformPrepareAgc(RPiController::Metadata &rpiMetadata) = 0;
 	virtual RPiController::StatisticsPtr platformProcessStats(std::span<uint8_t> mem) = 0;
 
