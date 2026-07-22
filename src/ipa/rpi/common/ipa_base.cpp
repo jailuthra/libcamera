@@ -516,7 +516,7 @@ void IpaBase::prepareIsp(const PrepareParams &params)
 	if (processPending_) {
 		controller_.prepare(&rpiMetadata);
 		/* Actually prepare the ISP parameters for the frame. */
-		platformPrepareIsp(params, rpiMetadata);
+		platformPrepareIsp(rpiMetadata);
 		platformPrepareAgc(rpiMetadata);
 	} else
 		platformPrepareAgc(rpiMetadata);
