@@ -232,8 +232,7 @@ private:
 	int32_t platformStart(const ControlList &controls, StartResult *result) override;
 	int32_t platformConfigure(const ConfigParams &params, ConfigResult *result) override;
 
-	void platformPrepareIsp(const PrepareParams &params,
-				RPiController::Metadata &rpiMetadata) override;
+	void platformPrepareIsp(RPiController::Metadata &rpiMetadata) override;
 	void platformPrepareAgc(RPiController::Metadata &rpiMetadata) override;
 	RPiController::StatisticsPtr platformProcessStats(Span<uint8_t> mem) override;
 
@@ -354,8 +353,7 @@ int32_t IpaPiSP::platformConfigure([[maybe_unused]] const ConfigParams &params,
 	return 0;
 }
 
-void IpaPiSP::platformPrepareIsp([[maybe_unused]] const PrepareParams &params,
-				 RPiController::Metadata &rpiMetadata)
+void IpaPiSP::platformPrepareIsp(RPiController::Metadata &rpiMetadata)
 {
 	std::scoped_lock<RPiController::Metadata> l(rpiMetadata);
 
